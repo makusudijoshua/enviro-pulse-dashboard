@@ -3,9 +3,9 @@ import Nav from "@/app/components/layout/Nav";
 
 const Header = () => {
   return (
-    <section>
+    <header>
       <Nav />
-    </section>
+    </header>
   );
 };
 

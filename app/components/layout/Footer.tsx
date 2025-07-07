@@ -3,11 +3,11 @@ import Container from "@/app/components/layout/Container";
 
 const Footer = () => {
   return (
-    <section>
+    <footer>
       <Container>
-        <p>Footer</p>
+        <div></div>
       </Container>
-    </section>
+    </footer>
   );
 };
 

@@ -1,13 +1,14 @@
 import React from "react";
 import Container from "@/app/components/layout/Container";
+import Logo from "@/app/components/layout/Logo";
 
 const Nav = () => {
   return (
-    <div>
-      <Container>
-        <p>Navigation</p>
+    <nav>
+      <Container className="py-6 md:py-8 flex flex-row items-center justify-between">
+        <Logo />
       </Container>
-    </div>
+    </nav>
   );
 };
 
