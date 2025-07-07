@@ -1,14 +1,14 @@
 import React from "react";
 import Container from "@/app/components/layout/Container";
 
-const Page = () => {
+const Nav = () => {
   return (
     <div>
       <Container>
-        <main></main>
+        <p>Navigation</p>
       </Container>
     </div>
   );
 };
 
-export default Page;
+export default Nav;

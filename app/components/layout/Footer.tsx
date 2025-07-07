@@ -1,14 +1,14 @@
 import React from "react";
 import Container from "@/app/components/layout/Container";
 
-const Page = () => {
+const Footer = () => {
   return (
-    <div>
+    <section>
       <Container>
-        <main></main>
+        <p>Footer</p>
       </Container>
-    </div>
+    </section>
   );
 };
 
-export default Page;
+export default Footer;
