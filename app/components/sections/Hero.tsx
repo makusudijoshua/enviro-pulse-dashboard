@@ -18,12 +18,16 @@ const Hero = () => {
 
   useEffect(() => {
     const fetchLatest = async () => {
-      const res = await fetch("/api/sensor?minutes=10");
-      const data: Reading[] = await res.json();
+      try {
+        const res = await fetch("/api/sensor?minutes=10");
+        const data: Reading[] = await res.json();
 
-      if (data.length > 0) {
-        setLatest(data[0]);
-        setPrevious(data[1] || null);
+        if (data.length > 0) {
+          setLatest(data[data.length - 1]);
+          setPrevious(data[data.length - 2] || null);
+        }
+      } catch (err) {
+        console.error("Failed to fetch sensor data", err);
       }
     };
 

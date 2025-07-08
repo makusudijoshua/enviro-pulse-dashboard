@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import clsx from "clsx";
 
 interface SensorCardProps {
   type: "temperature" | "humidity" | "sound";
@@ -10,6 +11,9 @@ interface SensorCardProps {
   title: string;
   icon: React.ReactNode;
 }
+
+const formatValue = (value: number | null) =>
+  value !== null ? new Intl.NumberFormat().format(value) : "No data";
 
 const getBarStyle = (type: string, value: number | null) => {
   if (value === null) return { width: "0%", color: "bg-gray-300" };
@@ -72,7 +76,11 @@ const Card: React.FC<SensorCardProps> = ({
   const tags = getTags(type);
 
   return (
-    <div className="p-6 rounded-2xl shadow-md bg-white w-full text-gray-900">
+    <div
+      role="region"
+      aria-label={`${title} sensor card`}
+      className="p-6 rounded-2xl shadow-md bg-white w-full text-gray-900"
+    >
       <div className="flex flex-row items-center justify-between border-b border-gray-200 pb-4 mb-6">
         <div className="flex flex-row items-center gap-3">
           <div className="text-gray-400">{icon}</div>
@@ -84,18 +92,21 @@ const Card: React.FC<SensorCardProps> = ({
       </div>
 
       <div className="text-5xl font-semibold mb-2">
-        {currentReading !== null ? `${currentReading}` : "No data"}
+        {formatValue(currentReading)}
       </div>
 
       <div className="text-xs text-gray-400 mb-4">
         {type === "sound"
-          ? `Sensitivity: ${sensitivityLevel ?? "No data"}%`
-          : `${previousReading !== null ? `${previousReading}` : "No data"} · 5 min ago`}
+          ? `Sensitivity: ${formatValue(sensitivityLevel)}%`
+          : `${formatValue(previousReading ?? null)} · 5 min ago`}
       </div>
 
       <div className="h-2 w-full rounded-full bg-gray-200 overflow-hidden mb-3">
         <div
-          className={`h-full rounded-full transition-all duration-500 ${bar.color}`}
+          className={clsx(
+            "h-full rounded-full transition-all duration-500",
+            bar.color,
+          )}
           style={{ width: bar.width }}
         ></div>
       </div>
@@ -103,7 +114,7 @@ const Card: React.FC<SensorCardProps> = ({
       <div className="flex justify-between items-center text-xs text-gray-600">
         {tags.map((tag) => (
           <div className="flex items-center gap-1" key={tag.label}>
-            <span className={`w-2 h-2 rounded-full ${tag.color}`}></span>
+            <span className={clsx("w-2 h-2 rounded-full", tag.color)}></span>
             {tag.label}
           </div>
         ))}

@@ -15,7 +15,6 @@ const Dashboard = () => {
   const handleTimeRangeChange = (range: TimeRange) => {
     setTimeRange(range);
 
-    // Auto-toggle based on selected range
     if (range === "5m" || range === "15m") {
       setView("table");
     } else {
@@ -43,7 +42,7 @@ const Dashboard = () => {
             </button>
           ))}
         </div>
-        <ViewToggle view={view} onChange={setView} />A
+        <ViewToggle view={view} onChange={setView} />
       </div>
 
       {view === "chart" ? (
@@ -56,4 +55,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-

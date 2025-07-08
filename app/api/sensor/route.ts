@@ -3,28 +3,29 @@ import { PrismaClient } from "@/app/generated/prisma";
 
 const prisma = new PrismaClient();
 
+// ========== POST: Receive sensor data ==========
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    console.log("✅ Received data:", body);
     const { temperature, humidity, sound, filterLevel } = body;
 
-    if (
-      typeof temperature !== "number" ||
-      typeof humidity !== "number" ||
-      typeof sound !== "number" ||
-      typeof filterLevel !== "number"
-    ) {
+    // Validate input
+    const isValid =
+      typeof temperature === "number" &&
+      typeof humidity === "number" &&
+      typeof sound === "number" &&
+      typeof filterLevel === "number";
+
+    if (!isValid) {
       return NextResponse.json({ error: "Invalid input" }, { status: 400 });
     }
 
     const newReading = await prisma.sensorReading.create({
-      data: {
-        temperature,
-        humidity,
-        sound,
-        filterLevel,
-      },
+      data: { temperature, humidity, sound, filterLevel },
     });
+
+    console.log("🗃️ Saved to DB:", newReading);
 
     return NextResponse.json(newReading, { status: 201 });
   } catch (error) {
@@ -36,21 +37,16 @@ export async function POST(req: NextRequest) {
   }
 }
 
+// ========== GET: Return recent readings ==========
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const minutes = parseInt(searchParams.get("minutes") || "5", 10);
-    const since = new Date(Date.now() - minutes * 60 * 1000);
+    const seconds = parseInt(searchParams.get("seconds") || "300", 10);
+    const since = new Date(Date.now() - seconds * 1000);
 
     const readings = await prisma.sensorReading.findMany({
-      where: {
-        timestamp: {
-          gte: since,
-        },
-      },
-      orderBy: {
-        timestamp: "desc",
-      },
+      where: { timestamp: { gte: since } },
+      orderBy: { timestamp: "desc" },
     });
 
     return NextResponse.json(readings);

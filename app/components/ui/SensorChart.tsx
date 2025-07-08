@@ -22,6 +22,21 @@ interface SensorChartProps {
   timeRange: "5m" | "15m" | "1h" | "1d";
 }
 
+const parseTimeRange = (range: string): number => {
+  switch (range) {
+    case "5m":
+      return 5;
+    case "15m":
+      return 15;
+    case "1h":
+      return 60;
+    case "1d":
+      return 1440;
+    default:
+      return 5;
+  }
+};
+
 const SensorChart: React.FC<SensorChartProps> = ({ timeRange }) => {
   const [data, setData] = useState<SensorReading[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,12 +44,13 @@ const SensorChart: React.FC<SensorChartProps> = ({ timeRange }) => {
   useEffect(() => {
     const fetchReadings = async () => {
       try {
+        setLoading(true);
         const minutes = parseTimeRange(timeRange);
         const res = await fetch(`/api/sensor?minutes=${minutes}`);
-        const json = await res.json();
+        const json: SensorReading[] = await res.json();
         setData(json);
       } catch (error) {
-        console.error("Failed to fetch sensor data", error);
+        console.error("Failed to fetch sensor data:", error);
       } finally {
         setLoading(false);
       }
@@ -43,26 +59,15 @@ const SensorChart: React.FC<SensorChartProps> = ({ timeRange }) => {
     fetchReadings();
   }, [timeRange]);
 
-  const parseTimeRange = (range: string): number => {
-    switch (range) {
-      case "5m":
-        return 5;
-      case "15m":
-        return 15;
-      case "1h":
-        return 60;
-      case "1d":
-        return 1440;
-      default:
-        return 5;
-    }
-  };
-
-  if (loading) return <p>Loading chart...</p>;
+  if (loading) return <p className="text-gray-500">Loading chart...</p>;
+  if (!data.length) return <p className="text-gray-500">No data available</p>;
 
   return (
     <ResponsiveContainer width="100%" height={320}>
-      <LineChart data={data}>
+      <LineChart
+        data={data}
+        margin={{ top: 10, right: 20, left: 0, bottom: 10 }}
+      >
         <XAxis
           dataKey="timestamp"
           tickFormatter={(t) =>
