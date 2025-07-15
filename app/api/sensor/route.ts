@@ -51,11 +51,13 @@ export async function GET(req: NextRequest) {
     else if (minutes === 60) bucketMs = 60 * 60_000;
     else if (minutes >= 1440) bucketMs = 24 * 60 * 60_000;
 
+    // Fetch readings in the given time window
     const all = await prisma.sensorReading.findMany({
       where: { timestamp: { gte: cutoff } },
       orderBy: { timestamp: "asc" },
     });
 
+    // Group readings into time buckets
     const buckets = new Map<number, (typeof all)[0]>();
 
     for (const r of all) {
