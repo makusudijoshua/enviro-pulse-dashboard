@@ -1,7 +1,7 @@
 // ==================== Generator ====================
 generator client {
   provider = "prisma-client-js"
-  output   = "../app/generated/prisma" // Custom output directory
+  output   = "../app/generated/prisma"
 }
 
 // ==================== Datasource ====================
@@ -16,7 +16,6 @@ model SensorReading {
   temperature Float
   humidity    Float
   sound       Int
-  filterLevel Int
   timestamp   DateTime @default(now())
 
   @@map("sensor_readings")
