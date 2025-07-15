@@ -1,6 +1,5 @@
 import React from "react";
 import Container from "@/app/components/layout/Container";
-import Hero from "@/app/components/sections/Hero";
 import Dashboard from "@/app/components/sections/Dashboard";
 
 const Page = () => {
@@ -8,8 +7,7 @@ const Page = () => {
     <div>
       <Container>
         <main>
-          <Hero/>
-          <Dashboard/>
+          <Dashboard />
         </main>
       </Container>
     </div>

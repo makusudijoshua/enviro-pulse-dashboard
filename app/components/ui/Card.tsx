@@ -7,7 +7,6 @@ interface SensorCardProps {
   type: "temperature" | "humidity" | "sound";
   currentReading: number | null;
   previousReading?: number | null;
-  sensitivityLevel?: number | null;
   title: string;
   icon: React.ReactNode;
 }
@@ -70,7 +69,6 @@ const Card: React.FC<SensorCardProps> = ({
   title,
   currentReading,
   previousReading,
-  sensitivityLevel = null,
 }) => {
   const bar = getBarStyle(type, currentReading);
   const tags = getTags(type);
@@ -81,14 +79,14 @@ const Card: React.FC<SensorCardProps> = ({
       aria-label={`${title} sensor card`}
       className="p-6 rounded-2xl shadow-md bg-white w-full text-gray-900"
     >
-      <div className="flex flex-row items-center justify-between border-b border-gray-200 pb-4 mb-6">
-        <div className="flex flex-row items-center gap-3">
+      <div className="flex items-center justify-between border-gray-200 border-b pb-4 mb-6">
+        <div className="flex items-center gap-3">
           <div className="text-gray-400">{icon}</div>
-          <h6 className="font-medium">{title || "Unknown"}</h6>
+          <h6 className="font-medium">{title}</h6>
         </div>
-        <p className="text-sm text-neutral-500 border border-gray-200 rounded-lg px-2.5 py-1 shadow-xs">
-          Today
-        </p>
+        {/*<p className="text-sm text-neutral-500 border border-gray-200 rounded-lg px-2.5 py-1 shadow-xs">*/}
+        {/*  Today*/}
+        {/*</p>*/}
       </div>
 
       <div className="text-5xl font-semibold mb-2">
@@ -96,9 +94,7 @@ const Card: React.FC<SensorCardProps> = ({
       </div>
 
       <div className="text-xs text-gray-400 mb-4">
-        {type === "sound"
-          ? `Sensitivity: ${formatValue(sensitivityLevel)}%`
-          : `${formatValue(previousReading ?? null)} · 5 min ago`}
+        {`${formatValue(previousReading ?? null)} · 5 min ago`}
       </div>
 
       <div className="h-2 w-full rounded-full bg-gray-200 overflow-hidden mb-3">
@@ -108,13 +104,13 @@ const Card: React.FC<SensorCardProps> = ({
             bar.color,
           )}
           style={{ width: bar.width }}
-        ></div>
+        />
       </div>
 
       <div className="flex justify-between items-center text-xs text-gray-600">
         {tags.map((tag) => (
           <div className="flex items-center gap-1" key={tag.label}>
-            <span className={clsx("w-2 h-2 rounded-full", tag.color)}></span>
+            <span className={clsx("w-2 h-2 rounded-full", tag.color)} />
             {tag.label}
           </div>
         ))}
