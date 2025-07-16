@@ -4,5 +4,4 @@ export type Reading = {
   sound: number;
   filterLevel?: number;
   timestamp: string;
-  peakToPeak?: number | null;
 };
