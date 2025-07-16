@@ -8,7 +8,6 @@ import TableView from "@/app/components/ui/TableView";
 import { Reading } from "@/app/common/types/reading";
 import { AudioLines, ThermometerSun, Waves } from "lucide-react";
 
-// Initial filters with only supported sensors
 const initialFilters: FilterState = {
   selectedTime: "5m",
   selectedView: "Grid",
@@ -22,16 +21,44 @@ const Hero = () => {
   const [previous, setPrevious] = useState<Reading | null>(null);
 
   useEffect(() => {
+    if (filters.selectedTime === "1h" || filters.selectedTime === "1d") {
+      setFilters((prev) => ({ ...prev, selectedView: "Chart" }));
+    }
+  }, [filters.selectedTime]);
+
+  useEffect(() => {
     const fetchReadings = async () => {
-      const minutes = parseInt(filters.selectedTime);
+      const minutesMap: Record<string, number> = {
+        "5m": 5,
+        "15m": 15,
+        "1h": 60,
+        "1d": 1440,
+      };
+
+      const minutes = minutesMap[filters.selectedTime] || 5;
+
       try {
         const res = await fetch(`/api/sensor?minutes=${minutes}`);
         const data = await res.json();
 
         if (Array.isArray(data)) {
           setReadings(data);
-          setLatest(data[data.length - 1] ?? null);
-          setPrevious(data[data.length - 2] ?? null);
+
+          const latestReading = data[data.length - 1] ?? null;
+          const fiveMinutesAgo = latestReading
+            ? new Date(
+                new Date(latestReading.timestamp).getTime() - 5 * 60 * 1000,
+              )
+            : null;
+
+          const previousReading =
+            fiveMinutesAgo &&
+            [...data]
+              .reverse()
+              .find((r) => new Date(r.timestamp) <= fiveMinutesAgo);
+
+          setLatest(latestReading);
+          setPrevious(previousReading ?? null);
         } else {
           console.warn("Unexpected API response:", data);
         }

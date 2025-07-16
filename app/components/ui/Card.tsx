@@ -9,10 +9,26 @@ interface SensorCardProps {
   previousReading?: number | null;
   title: string;
   icon: React.ReactNode;
+  peakToPeak?: number | null; // Only used for sound
 }
 
-const formatValue = (value: number | null) =>
-  value !== null ? new Intl.NumberFormat().format(value) : "No data";
+const getUnit = (type: string) => {
+  switch (type) {
+    case "temperature":
+      return "°C";
+    case "humidity":
+      return "%";
+    case "sound":
+      return "dB";
+    default:
+      return "";
+  }
+};
+
+const formatValue = (value: number | null, type: string) =>
+  value !== null
+    ? `${new Intl.NumberFormat().format(value)} ${getUnit(type)}`
+    : "No data";
 
 const getBarStyle = (type: string, value: number | null) => {
   if (value === null) return { width: "0%", color: "bg-gray-300" };
@@ -69,6 +85,7 @@ const Card: React.FC<SensorCardProps> = ({
   title,
   currentReading,
   previousReading,
+  peakToPeak,
 }) => {
   const bar = getBarStyle(type, currentReading);
   const tags = getTags(type);
@@ -84,17 +101,19 @@ const Card: React.FC<SensorCardProps> = ({
           <div className="text-gray-400">{icon}</div>
           <h6 className="font-medium">{title}</h6>
         </div>
-        {/*<p className="text-sm text-neutral-500 border border-gray-200 rounded-lg px-2.5 py-1 shadow-xs">*/}
-        {/*  Today*/}
-        {/*</p>*/}
+        {type === "sound" && peakToPeak !== null && (
+          <div className="text-sm text-gray-500">
+            Peak to Peak: <span className="font-medium">{peakToPeak}</span>
+          </div>
+        )}
       </div>
 
       <div className="text-5xl font-semibold mb-2">
-        {formatValue(currentReading)}
+        {formatValue(currentReading, type)}
       </div>
 
       <div className="text-xs text-gray-400 mb-4">
-        {`${formatValue(previousReading ?? null)} · 5 min ago`}
+        {`${formatValue(previousReading ?? null, type)} · 5 min ago`}
       </div>
 
       <div className="h-2 w-full rounded-full bg-gray-200 overflow-hidden mb-3">

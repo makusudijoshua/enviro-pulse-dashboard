@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { temperature, humidity, sound } = body;
+    const { temperature, humidity, sound, peakToPeak } = body;
 
     if (
       typeof temperature !== "number" ||
@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    await prisma.sensorReading.create({
+    const saved = await prisma.sensorReading.create({
       data: {
         temperature,
         humidity,
@@ -27,7 +27,13 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      reading: {
+        ...saved,
+        peakToPeak: typeof peakToPeak === "number" ? peakToPeak : null,
+      },
+    });
   } catch (err) {
     console.error("POST /api/sensor error:", err);
     return NextResponse.json(
@@ -42,42 +48,33 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const minutesParam = searchParams.get("minutes") || "5";
     const minutes = Number(minutesParam);
-    const now = Date.now();
-    const cutoff = new Date(now - minutes * 60 * 1000);
 
-    // Define time bucket size
-    let bucketMs = 5 * 60_000;
-    if (minutes === 15) bucketMs = 15 * 60_000;
-    else if (minutes === 60) bucketMs = 60 * 60_000;
-    else if (minutes >= 1440) bucketMs = 24 * 60 * 60_000;
-
-    // Fetch readings in the given time window
-    const all = await prisma.sensorReading.findMany({
-      where: { timestamp: { gte: cutoff } },
-      orderBy: { timestamp: "asc" },
-    });
-
-    // Group readings into time buckets
-    const buckets = new Map<number, (typeof all)[0]>();
-
-    for (const r of all) {
-      const time = new Date(r.timestamp).getTime();
-      const bucket = Math.floor(time / bucketMs) * bucketMs;
-      if (!buckets.has(bucket)) {
-        buckets.set(bucket, r);
-      }
+    if (isNaN(minutes) || minutes <= 0) {
+      return NextResponse.json(
+        { error: "Invalid 'minutes' query parameter" },
+        { status: 400 },
+      );
     }
 
-    const sampled = Array.from(buckets.values()).sort(
-      (a, b) =>
-        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
-    );
+    const now = new Date();
+    const cutoff = new Date(now.getTime() - minutes * 60 * 1000);
 
-    return NextResponse.json(sampled);
+    const readings = await prisma.sensorReading.findMany({
+      where: {
+        timestamp: {
+          gte: cutoff,
+        },
+      },
+      orderBy: {
+        timestamp: "asc",
+      },
+    });
+
+    return NextResponse.json(readings);
   } catch (err) {
     console.error("GET /api/sensor error:", err);
     return NextResponse.json(
-      { error: "Failed to fetch sampled readings" },
+      { error: "Failed to fetch sensor readings" },
       { status: 500 },
     );
   }
