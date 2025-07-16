@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
         temperature,
         humidity,
         sound,
+        peakToPeak: typeof peakToPeak === "number" ? peakToPeak : null,
       },
     });
 
@@ -56,13 +57,27 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const now = new Date();
-    const cutoff = new Date(now.getTime() - minutes * 60 * 1000);
+    const latestReading = await prisma.sensorReading.findFirst({
+      orderBy: {
+        timestamp: "desc",
+      },
+    });
 
-    const readings = await prisma.sensorReading.findMany({
+    if (!latestReading) {
+      return NextResponse.json([]);
+    }
+
+    let intervalMs = 5 * 60 * 1000; // default = 5 min
+    if (minutes === 15) intervalMs = 15 * 60 * 1000;
+    else if (minutes === 60) intervalMs = 60 * 1000;
+    else if (minutes === 1440) intervalMs = 60 * 60 * 1000;
+
+    const afterTimestamp = new Date(latestReading.timestamp.getTime());
+
+    const allAfterLive = await prisma.sensorReading.findMany({
       where: {
         timestamp: {
-          gte: cutoff,
+          gt: afterTimestamp,
         },
       },
       orderBy: {
@@ -70,7 +85,20 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    return NextResponse.json(readings);
+    const spacedReadings = [];
+    let nextAllowedTime = new Date(afterTimestamp.getTime() + intervalMs);
+
+    for (const reading of allAfterLive) {
+      if (reading.timestamp >= nextAllowedTime) {
+        spacedReadings.push(reading);
+        nextAllowedTime = new Date(reading.timestamp.getTime() + intervalMs);
+      }
+    }
+
+    return NextResponse.json({
+      live: latestReading,
+      readings: spacedReadings,
+    });
   } catch (err) {
     console.error("GET /api/sensor error:", err);
     return NextResponse.json(

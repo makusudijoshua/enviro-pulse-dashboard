@@ -29,36 +29,25 @@ const Hero = () => {
   useEffect(() => {
     const fetchReadings = async () => {
       const minutesMap: Record<string, number> = {
+        Live: 0,
         "5m": 5,
         "15m": 15,
         "1h": 60,
         "1d": 1440,
       };
 
-      const minutes = minutesMap[filters.selectedTime] || 5;
+      const minutes = minutesMap[filters.selectedTime] ?? 5;
 
       try {
         const res = await fetch(`/api/sensor?minutes=${minutes}`);
         const data = await res.json();
 
-        if (Array.isArray(data)) {
-          setReadings(data);
+        if (data && data.live && Array.isArray(data.readings)) {
+          setLatest(data.live);
+          setReadings(data.readings);
 
-          const latestReading = data[data.length - 1] ?? null;
-          const fiveMinutesAgo = latestReading
-            ? new Date(
-                new Date(latestReading.timestamp).getTime() - 5 * 60 * 1000,
-              )
-            : null;
-
-          const previousReading =
-            fiveMinutesAgo &&
-            [...data]
-              .reverse()
-              .find((r) => new Date(r.timestamp) <= fiveMinutesAgo);
-
-          setLatest(latestReading);
-          setPrevious(previousReading ?? null);
+          // For cards: show 5m after the live value (first spaced reading)
+          setPrevious(data.readings[0] ?? null);
         } else {
           console.warn("Unexpected API response:", data);
         }

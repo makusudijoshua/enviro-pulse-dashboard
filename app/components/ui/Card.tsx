@@ -9,7 +9,7 @@ interface SensorCardProps {
   previousReading?: number | null;
   title: string;
   icon: React.ReactNode;
-  peakToPeak?: number | null; // Only used for sound
+  peakToPeak?: number | null;
 }
 
 const getUnit = (type: string) => {
@@ -103,7 +103,7 @@ const Card: React.FC<SensorCardProps> = ({
         </div>
         {type === "sound" && peakToPeak !== null && (
           <div className="text-sm text-gray-500">
-            Peak to Peak: <span className="font-medium">{peakToPeak}</span>
+            Peak to Peak: <span className="font-medium">{peakToPeak} dB</span>
           </div>
         )}
       </div>
@@ -114,8 +114,8 @@ const Card: React.FC<SensorCardProps> = ({
 
       <div className="text-xs text-gray-400 mb-4">
         {typeof previousReading === "number"
-          ? `${formatValue(previousReading, type)} · 5 min before latest`
-          : "No reading 5 min before latest"}
+          ? `${formatValue(previousReading, type)} · 5 min after live`
+          : "No reading 5 min after live"}
       </div>
 
       <div className="h-2 w-full rounded-full bg-gray-200 overflow-hidden mb-3">

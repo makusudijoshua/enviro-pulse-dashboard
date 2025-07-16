@@ -9,15 +9,11 @@ type Props = {
 };
 
 const TableView: React.FC<Props> = ({ sensors, data }) => {
-  const formatDateTime = (timestamp: string) => {
-    return new Date(timestamp).toLocaleString(undefined, {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
+  const formatTime = (timestamp: string) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString(undefined, {
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
-      hour12: true,
     });
   };
 
@@ -26,7 +22,7 @@ const TableView: React.FC<Props> = ({ sensors, data }) => {
       <table className="w-full table-auto text-sm text-gray-800">
         <thead className="bg-gray-100 border-b text-left">
           <tr>
-            <th className="px-4 py-2">Timestamp</th>
+            <th className="px-4 py-2">Time</th>
             {sensors.includes("Temperature") && (
               <th className="px-4 py-2">Temperature</th>
             )}
@@ -47,7 +43,8 @@ const TableView: React.FC<Props> = ({ sensors, data }) => {
               key={index}
               className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
             >
-              <td className="px-4 py-2">{formatDateTime(entry.timestamp)}</td>
+              <td className="px-4 py-2">{formatTime(entry.timestamp)}</td>
+
               {sensors.includes("Temperature") && (
                 <td className="px-4 py-2">
                   {entry.temperature !== null && entry.temperature !== undefined
@@ -55,6 +52,7 @@ const TableView: React.FC<Props> = ({ sensors, data }) => {
                     : "--"}
                 </td>
               )}
+
               {sensors.includes("Humidity") && (
                 <td className="px-4 py-2">
                   {entry.humidity !== null && entry.humidity !== undefined
@@ -62,6 +60,7 @@ const TableView: React.FC<Props> = ({ sensors, data }) => {
                     : "--"}
                 </td>
               )}
+
               {sensors.includes("Sound Level") && (
                 <td className="px-4 py-2">
                   {entry.sound !== null && entry.sound !== undefined
@@ -69,6 +68,7 @@ const TableView: React.FC<Props> = ({ sensors, data }) => {
                     : "--"}
                 </td>
               )}
+
               {sensors.includes("Filter Level") && (
                 <td className="px-4 py-2">
                   {entry.filterLevel !== undefined && entry.filterLevel !== null

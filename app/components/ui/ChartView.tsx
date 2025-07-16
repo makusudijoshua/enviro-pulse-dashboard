@@ -31,6 +31,15 @@ const formatDateTime = (timestamp: string) => {
   return new Date(timestamp).toLocaleString(undefined, options);
 };
 
+const formatShortTime = (timestamp: string) => {
+  const date = new Date(timestamp);
+  return date.toLocaleTimeString(undefined, {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+};
+
 const formatUnit = (key: string, value: number) => {
   if (key === "temperature") return `${value} °C`;
   if (key === "humidity") return `${value} %`;
@@ -60,18 +69,20 @@ export default function ChartView({ data, sensors }: ChartViewProps) {
       <ResponsiveContainer width="100%" height="100%">
         <LineChart
           data={data}
-          margin={{ top: 20, right: 20, left: 0, bottom: 20 }}
+          margin={{ top: 20, right: 20, left: 0, bottom: 40 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
+
           <XAxis
             dataKey="timestamp"
-            tickFormatter={formatDateTime}
+            tickFormatter={formatShortTime}
             angle={-45}
             textAnchor="end"
-            interval={0}
-            tick={{ fontSize: 11 }}
+            interval="preserveStartEnd"
+            tick={{ fontSize: 12 }}
             height={60}
           />
+
           <YAxis tick={{ fontSize: 12 }} />
           <Tooltip content={<CustomTooltip />} />
           <Legend />

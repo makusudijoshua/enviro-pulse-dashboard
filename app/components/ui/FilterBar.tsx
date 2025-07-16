@@ -2,7 +2,7 @@
 
 import React from "react";
 
-const timeOptions = ["5m", "15m", "1h", "1d"] as const;
+const timeOptions = ["Live", "5m", "15m", "1h", "1d"] as const;
 const views = ["Grid", "Chart", "Table"] as const;
 const sensors = ["Temperature", "Humidity", "Sound Level"] as const;
 
@@ -38,6 +38,11 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
     onChange({ ...filters, selectedSensors: updatedSensors });
   };
 
+  const realTimeLabel =
+    filters.selectedTime === "Live"
+      ? "Live (every 5s)"
+      : `Data every ${filters.selectedTime}`;
+
   return (
     <div className="flex flex-col gap-6 p-6 bg-white shadow-md rounded-xl">
       <div className="flex w-full justify-between items-center">
@@ -70,7 +75,7 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
           ))}
         </div>
         <div className="text-xs text-gray-600 hidden md:block">
-          Real-time (5s)
+          {realTimeLabel}
         </div>
       </div>
 
