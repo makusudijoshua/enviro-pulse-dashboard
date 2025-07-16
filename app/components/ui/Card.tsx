@@ -113,7 +113,9 @@ const Card: React.FC<SensorCardProps> = ({
       </div>
 
       <div className="text-xs text-gray-400 mb-4">
-        {`${formatValue(previousReading ?? null, type)} · 5 min ago`}
+        {typeof previousReading === "number"
+          ? `${formatValue(previousReading, type)} · 5 min before latest`
+          : "No reading 5 min before latest"}
       </div>
 
       <div className="h-2 w-full rounded-full bg-gray-200 overflow-hidden mb-3">

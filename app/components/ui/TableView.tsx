@@ -9,12 +9,15 @@ type Props = {
 };
 
 const TableView: React.FC<Props> = ({ sensors, data }) => {
-  const formatTime = (timestamp: string) => {
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString([], {
+  const formatDateTime = (timestamp: string) => {
+    return new Date(timestamp).toLocaleString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
       second: "2-digit",
+      hour12: true,
     });
   };
 
@@ -23,18 +26,18 @@ const TableView: React.FC<Props> = ({ sensors, data }) => {
       <table className="w-full table-auto text-sm text-gray-800">
         <thead className="bg-gray-100 border-b text-left">
           <tr>
-            <th className="px-4 py-2">Time</th>
+            <th className="px-4 py-2">Timestamp</th>
             {sensors.includes("Temperature") && (
-              <th className="px-4 py-2">Temperature (°C)</th>
+              <th className="px-4 py-2">Temperature</th>
             )}
             {sensors.includes("Humidity") && (
-              <th className="px-4 py-2">Humidity (%)</th>
+              <th className="px-4 py-2">Humidity</th>
             )}
             {sensors.includes("Sound Level") && (
-              <th className="px-4 py-2">Sound (dB)</th>
+              <th className="px-4 py-2">Sound Level</th>
             )}
             {sensors.includes("Filter Level") && (
-              <th className="px-4 py-2">Filter Level (%)</th>
+              <th className="px-4 py-2">Filter Level</th>
             )}
           </tr>
         </thead>
@@ -44,23 +47,33 @@ const TableView: React.FC<Props> = ({ sensors, data }) => {
               key={index}
               className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
             >
-              <td className="px-4 py-2">{formatTime(entry.timestamp)}</td>
+              <td className="px-4 py-2">{formatDateTime(entry.timestamp)}</td>
               {sensors.includes("Temperature") && (
                 <td className="px-4 py-2">
-                  {entry.temperature?.toFixed(1) ?? "--"}
+                  {entry.temperature !== null && entry.temperature !== undefined
+                    ? `${entry.temperature.toFixed(1)} °C`
+                    : "--"}
                 </td>
               )}
               {sensors.includes("Humidity") && (
                 <td className="px-4 py-2">
-                  {entry.humidity?.toFixed(1) ?? "--"}
+                  {entry.humidity !== null && entry.humidity !== undefined
+                    ? `${entry.humidity.toFixed(1)} %`
+                    : "--"}
                 </td>
               )}
               {sensors.includes("Sound Level") && (
-                <td className="px-4 py-2">{entry.sound ?? "--"}</td>
+                <td className="px-4 py-2">
+                  {entry.sound !== null && entry.sound !== undefined
+                    ? `${entry.sound} dB`
+                    : "--"}
+                </td>
               )}
               {sensors.includes("Filter Level") && (
                 <td className="px-4 py-2">
-                  {entry.filterLevel !== undefined ? entry.filterLevel : "--"}
+                  {entry.filterLevel !== undefined && entry.filterLevel !== null
+                    ? `${entry.filterLevel} %`
+                    : "--"}
                 </td>
               )}
             </tr>

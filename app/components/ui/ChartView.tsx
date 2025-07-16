@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from "react";
@@ -19,18 +18,62 @@ type ChartViewProps = {
   sensors: string[];
 };
 
+const formatDateTime = (timestamp: string) => {
+  const options: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  };
+  return new Date(timestamp).toLocaleString(undefined, options);
+};
+
+const formatUnit = (key: string, value: number) => {
+  if (key === "temperature") return `${value} °C`;
+  if (key === "humidity") return `${value} %`;
+  if (key === "sound") return `${value} dB`;
+  return value;
+};
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload?.length) {
+    return (
+      <div className="rounded-md bg-white p-3 shadow-md border border-gray-200">
+        <p className="text-xs text-gray-500">{formatDateTime(label)}</p>
+        {payload.map((entry: any, i: number) => (
+          <p key={i} className="text-sm text-gray-800">
+            {entry.name}: {formatUnit(entry.dataKey, entry.value)}
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
+
 export default function ChartView({ data, sensors }: ChartViewProps) {
   return (
     <div className="w-full h-[400px] bg-white p-6 rounded-xl shadow-md">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart
           data={data}
-          margin={{ top: 20, right: 20, left: 0, bottom: 0 }}
+          margin={{ top: 20, right: 20, left: 0, bottom: 20 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="timestamp" tick={{ fontSize: 12 }} />
+          <XAxis
+            dataKey="timestamp"
+            tickFormatter={formatDateTime}
+            angle={-45}
+            textAnchor="end"
+            interval={0}
+            tick={{ fontSize: 11 }}
+            height={60}
+          />
           <YAxis tick={{ fontSize: 12 }} />
-          <Tooltip />
+          <Tooltip content={<CustomTooltip />} />
           <Legend />
 
           {sensors.includes("Temperature") && (
