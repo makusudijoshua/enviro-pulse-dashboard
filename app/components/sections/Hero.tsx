@@ -23,6 +23,8 @@ const Hero = () => {
   useEffect(() => {
     if (filters.selectedTime === "1h" || filters.selectedTime === "1d") {
       setFilters((prev) => ({ ...prev, selectedView: "Chart" }));
+    } else if (filters.selectedTime === "Live") {
+      setFilters((prev) => ({ ...prev, selectedView: "Grid" }));
     }
   }, [filters.selectedTime]);
 
@@ -42,15 +44,26 @@ const Hero = () => {
         const res = await fetch(`/api/sensor?minutes=${minutes}`);
         const data = await res.json();
 
-        if (data && data.live && Array.isArray(data.readings)) {
+        if (
+          data &&
+          data.live &&
+          Array.isArray(data.readings) &&
+          data.readings.every((r: any) => r.timestamp)
+        ) {
           setLatest(data.live);
           setReadings(data.readings);
           setPrevious(data.readings[0] ?? null);
         } else {
           console.warn("Unexpected API response:", data);
+          setLatest(null);
+          setReadings([]);
+          setPrevious(null);
         }
       } catch (err) {
         console.error("Failed to fetch sensor data", err);
+        setLatest(null);
+        setReadings([]);
+        setPrevious(null);
       }
     };
 
@@ -101,12 +114,16 @@ const Hero = () => {
         </div>
       )}
 
-      {filters.selectedView === "Chart" && readings.length > 0 && (
-        <ChartView sensors={filters.selectedSensors} data={readings} />
+      {filters.selectedView === "Chart" && (
+        <div className="w-full">
+          <ChartView sensors={filters.selectedSensors} data={readings} />
+        </div>
       )}
 
-      {filters.selectedView === "Table" && readings.length > 0 && (
-        <TableView sensors={filters.selectedSensors} data={readings} />
+      {filters.selectedView === "Table" && (
+        <div className="w-full">
+          <TableView sensors={filters.selectedSensors} data={readings} />
+        </div>
       )}
     </section>
   );
