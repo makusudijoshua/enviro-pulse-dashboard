@@ -1,7 +1,7 @@
 // ==================== Generator ====================
 generator client {
   provider = "prisma-client-js"
-  output   = "../app/generated/prisma" // Custom output directory
+  output   = "../app/generated/prisma"
 }
 
 // ==================== Datasource ====================

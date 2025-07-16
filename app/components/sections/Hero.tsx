@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
 import Card from "@/app/components/ui/Card";
-import FilterBar, { FilterState } from "@/app/components/ui/FilterBar";
-import ChartView from "@/app/components/ui/ChartView";
-import TableView from "@/app/components/ui/TableView";
+import React, { useEffect, useState } from "react";
 import { Reading } from "@/app/common/types/reading";
+import TableView from "@/app/components/ui/TableView";
+import ChartView from "@/app/components/ui/ChartView";
 import { AudioLines, ThermometerSun, Waves } from "lucide-react";
+import FilterBar, { FilterState } from "@/app/components/ui/FilterBar";
 
 const initialFilters: FilterState = {
   selectedTime: "5m",
