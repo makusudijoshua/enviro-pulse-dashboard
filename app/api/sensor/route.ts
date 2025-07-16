@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { temperature, humidity, sound, peakToPeak } = body;
+    const { temperature, humidity, sound } = body;
 
     if (
       typeof temperature !== "number" ||
@@ -24,16 +24,12 @@ export async function POST(req: NextRequest) {
         temperature,
         humidity,
         sound,
-        peakToPeak: typeof peakToPeak === "number" ? peakToPeak : null,
       },
     });
 
     return NextResponse.json({
       success: true,
-      reading: {
-        ...saved,
-        peakToPeak: typeof peakToPeak === "number" ? peakToPeak : null,
-      },
+      reading: saved,
     });
   } catch (err) {
     console.error("POST /api/sensor error:", err);
