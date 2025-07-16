@@ -45,8 +45,6 @@ const Hero = () => {
         if (data && data.live && Array.isArray(data.readings)) {
           setLatest(data.live);
           setReadings(data.readings);
-
-          // For cards: show 5m after the live value (first spaced reading)
           setPrevious(data.readings[0] ?? null);
         } else {
           console.warn("Unexpected API response:", data);
@@ -93,7 +91,6 @@ const Hero = () => {
           )}
           {filters.selectedSensors.includes("Sound Level") && (
             <Card
-              peakToPeak={latest?.peakToPeak ?? null}
               currentReading={latest?.sound ?? null}
               previousReading={previous?.sound ?? null}
               icon={icons["Sound Level"]}

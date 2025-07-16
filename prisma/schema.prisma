@@ -16,7 +16,6 @@ model SensorReading {
   temperature Float
   humidity    Float
   sound       Int
-  peakToPeak  Float?
   timestamp   DateTime @default(now())
 
   @@map("sensor_readings")

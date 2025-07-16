@@ -9,7 +9,6 @@ interface SensorCardProps {
   previousReading?: number | null;
   title: string;
   icon: React.ReactNode;
-  peakToPeak?: number | null;
 }
 
 const getUnit = (type: string) => {
@@ -85,7 +84,6 @@ const Card: React.FC<SensorCardProps> = ({
   title,
   currentReading,
   previousReading,
-  peakToPeak,
 }) => {
   const bar = getBarStyle(type, currentReading);
   const tags = getTags(type);
@@ -101,11 +99,6 @@ const Card: React.FC<SensorCardProps> = ({
           <div className="text-gray-400">{icon}</div>
           <h6 className="font-medium">{title}</h6>
         </div>
-        {type === "sound" && peakToPeak !== null && (
-          <div className="text-sm text-gray-500">
-            Peak to Peak: <span className="font-medium">{peakToPeak} dB</span>
-          </div>
-        )}
       </div>
 
       <div className="text-5xl font-semibold mb-2">
@@ -114,8 +107,8 @@ const Card: React.FC<SensorCardProps> = ({
 
       <div className="text-xs text-gray-400 mb-4">
         {typeof previousReading === "number"
-          ? `${formatValue(previousReading, type)} · 5 min after live`
-          : "No reading 5 min after live"}
+          ? `${formatValue(previousReading, type)} · 5 min before latest`
+          : "No reading 5 min before latest"}
       </div>
 
       <div className="h-2 w-full rounded-full bg-gray-200 overflow-hidden mb-3">
