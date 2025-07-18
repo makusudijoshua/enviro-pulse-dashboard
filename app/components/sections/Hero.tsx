@@ -21,11 +21,20 @@ const Hero = () => {
   const [previous, setPrevious] = useState<Reading | null>(null);
 
   useEffect(() => {
-    if (filters.selectedTime === "1h" || filters.selectedTime === "1d") {
-      setFilters((prev) => ({ ...prev, selectedView: "Chart" }));
-    } else if (filters.selectedTime === "Live") {
-      setFilters((prev) => ({ ...prev, selectedView: "Grid" }));
-    }
+    setFilters((prev) => {
+      if (filters.selectedTime === "1h" || filters.selectedTime === "1d") {
+        return { ...prev, selectedView: "Chart" };
+      }
+
+      if (
+        ["Live", "5m", "15m"].includes(filters.selectedTime) &&
+        prev.selectedView === "Chart"
+      ) {
+        return { ...prev, selectedView: "Grid" };
+      }
+
+      return prev;
+    });
   }, [filters.selectedTime]);
 
   useEffect(() => {

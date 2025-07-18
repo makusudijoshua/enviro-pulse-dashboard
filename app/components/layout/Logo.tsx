@@ -3,7 +3,7 @@ import React from "react";
 const Logo = () => {
   return (
     <div>
-      <p className="font-semibold text-lg">EnviroPulse</p>
+      <p className="font-semibold text-lg">Outdoor System</p>
     </div>
   );
 };

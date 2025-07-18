@@ -27,11 +27,10 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
   };
 
   const handleViewChange = (view: ViewOption) => {
-    // Don't allow view change if Live, 1h, or 1d are selected
+    const chartRestrictedTimes = ["Live", "5m", "15m"];
     if (
-      filters.selectedTime === "Live" ||
-      filters.selectedTime === "1h" ||
-      filters.selectedTime === "1d"
+      chartRestrictedTimes.includes(filters.selectedTime) &&
+      view === "Chart"
     ) {
       return;
     }
@@ -55,10 +54,7 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
           ? "1 hour gap between readings"
           : `Data every ${filters.selectedTime}`;
 
-  const viewLocked =
-    filters.selectedTime === "Live" ||
-    filters.selectedTime === "1h" ||
-    filters.selectedTime === "1d";
+  const isChartDisabled = ["Live", "5m", "15m"].includes(filters.selectedTime);
 
   return (
     <div className="flex flex-col gap-6 p-6 bg-white shadow-md rounded-xl">
@@ -79,19 +75,19 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
           ))}
 
           {views.map((view) => {
-            const isLocked = viewLocked;
+            const disabled = isChartDisabled && view === "Chart";
 
             return (
               <button
                 key={view}
                 onClick={() => handleViewChange(view)}
-                disabled={isLocked}
-                aria-disabled={isLocked}
+                disabled={disabled}
+                aria-disabled={disabled}
                 className={`px-3 py-1 rounded-md text-sm transition-colors ${
                   filters.selectedView === view
                     ? "bg-green-600 text-white"
                     : "bg-gray-100 text-gray-800"
-                } ${isLocked ? "opacity-50 cursor-not-allowed" : ""}`}
+                } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 {view}
               </button>
