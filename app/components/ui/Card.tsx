@@ -24,10 +24,12 @@ const getUnit = (type: string) => {
   }
 };
 
-const formatValue = (value: number | null, type: string) =>
-  value !== null
-    ? `${new Intl.NumberFormat().format(value)} ${getUnit(type)}`
-    : "No data";
+const formatValue = (value: number | null, type: string) => {
+  if (value === null) return "No data";
+  const formatted = new Intl.NumberFormat().format(value);
+  const unit = getUnit(type);
+  return `${formatted} ${unit}`;
+};
 
 const getBarStyle = (type: string, value: number | null) => {
   if (value === null) return { width: "0%", color: "bg-gray-300" };

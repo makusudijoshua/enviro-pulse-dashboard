@@ -27,6 +27,14 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
   };
 
   const handleViewChange = (view: ViewOption) => {
+    // Don't allow view change if Live, 1h, or 1d are selected
+    if (
+      filters.selectedTime === "Live" ||
+      filters.selectedTime === "1h" ||
+      filters.selectedTime === "1d"
+    ) {
+      return;
+    }
     onChange({ ...filters, selectedView: view });
   };
 
@@ -41,7 +49,16 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
   const realTimeLabel =
     filters.selectedTime === "Live"
       ? "Live (every 5s)"
-      : `Data every ${filters.selectedTime}`;
+      : filters.selectedTime === "1h"
+        ? "1 min gap between readings"
+        : filters.selectedTime === "1d"
+          ? "1 hour gap between readings"
+          : `Data every ${filters.selectedTime}`;
+
+  const viewLocked =
+    filters.selectedTime === "Live" ||
+    filters.selectedTime === "1h" ||
+    filters.selectedTime === "1d";
 
   return (
     <div className="flex flex-col gap-6 p-6 bg-white shadow-md rounded-xl">
@@ -60,19 +77,26 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
               {option}
             </button>
           ))}
-          {views.map((view) => (
-            <button
-              key={view}
-              onClick={() => handleViewChange(view)}
-              className={`px-3 py-1 rounded-md text-sm ${
-                filters.selectedView === view
-                  ? "bg-green-600 text-white"
-                  : "bg-gray-100 text-gray-800"
-              }`}
-            >
-              {view}
-            </button>
-          ))}
+
+          {views.map((view) => {
+            const isLocked = viewLocked;
+
+            return (
+              <button
+                key={view}
+                onClick={() => handleViewChange(view)}
+                disabled={isLocked}
+                aria-disabled={isLocked}
+                className={`px-3 py-1 rounded-md text-sm transition-colors ${
+                  filters.selectedView === view
+                    ? "bg-green-600 text-white"
+                    : "bg-gray-100 text-gray-800"
+                } ${isLocked ? "opacity-50 cursor-not-allowed" : ""}`}
+              >
+                {view}
+              </button>
+            );
+          })}
         </div>
         <div className="text-xs text-gray-600 hidden md:block">
           {realTimeLabel}

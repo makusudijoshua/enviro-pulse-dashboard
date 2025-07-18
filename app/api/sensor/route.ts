@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
     const minutesParam = searchParams.get("minutes") || "5";
     const minutes = Number(minutesParam);
 
-    if (isNaN(minutes) || minutes <= 0) {
+    if (isNaN(minutes) || minutes < 0) {
       return NextResponse.json(
         { error: "Invalid 'minutes' query parameter" },
         { status: 400 },
@@ -54,16 +54,30 @@ export async function GET(req: NextRequest) {
     }
 
     const latestReading = await prisma.sensorReading.findFirst({
-      orderBy: {
-        timestamp: "desc",
-      },
+      orderBy: { timestamp: "desc" },
     });
 
     if (!latestReading) {
-      return NextResponse.json([]);
+      return NextResponse.json({ live: null, readings: [] });
     }
 
-    let intervalMs = 5 * 60 * 1000; // default = 5 min
+    if (minutes === 0) {
+      const realTimeReadings = await prisma.sensorReading.findMany({
+        where: {
+          timestamp: {
+            gt: new Date(latestReading.timestamp.getTime() - 5 * 60 * 1000),
+          },
+        },
+        orderBy: { timestamp: "asc" },
+      });
+
+      return NextResponse.json({
+        live: latestReading,
+        readings: realTimeReadings,
+      });
+    }
+
+    let intervalMs = 5 * 60 * 1000;
     if (minutes === 15) intervalMs = 15 * 60 * 1000;
     else if (minutes === 60) intervalMs = 60 * 1000;
     else if (minutes === 1440) intervalMs = 60 * 60 * 1000;

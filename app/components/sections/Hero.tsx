@@ -1,12 +1,12 @@
 "use client";
 
-import Card from "@/app/components/ui/Card";
 import React, { useEffect, useState } from "react";
-import { Reading } from "@/app/common/types/reading";
+import Card from "@/app/components/ui/Card";
 import TableView from "@/app/components/ui/TableView";
 import ChartView from "@/app/components/ui/ChartView";
-import { AudioLines, ThermometerSun, Waves } from "lucide-react";
 import FilterBar, { FilterState } from "@/app/components/ui/FilterBar";
+import { AudioLines, ThermometerSun, Waves } from "lucide-react";
+import { Reading } from "@/app/common/types/reading";
 
 const initialFilters: FilterState = {
   selectedTime: "5m",
@@ -114,13 +114,13 @@ const Hero = () => {
         </div>
       )}
 
-      {filters.selectedView === "Chart" && (
+      {filters.selectedView === "Chart" && readings.length > 0 && (
         <div className="w-full">
           <ChartView sensors={filters.selectedSensors} data={readings} />
         </div>
       )}
 
-      {filters.selectedView === "Table" && (
+      {filters.selectedView === "Table" && readings.length > 0 && (
         <div className="w-full">
           <TableView sensors={filters.selectedSensors} data={readings} />
         </div>
