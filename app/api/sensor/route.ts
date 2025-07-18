@@ -54,40 +54,22 @@ export async function GET(req: NextRequest) {
     }
 
     const latestReading = await prisma.sensorReading.findFirst({
-      orderBy: { timestamp: "desc" },
+      orderBy: {
+        timestamp: "desc",
+      },
     });
 
     if (!latestReading) {
       return NextResponse.json({ live: null, readings: [] });
     }
 
-    if (minutes === 0) {
-      const realTimeReadings = await prisma.sensorReading.findMany({
-        where: {
-          timestamp: {
-            gt: new Date(latestReading.timestamp.getTime() - 5 * 60 * 1000),
-          },
-        },
-        orderBy: { timestamp: "asc" },
-      });
+    const now = latestReading.timestamp;
+    const fromTimestamp = new Date(now.getTime() - minutes * 60 * 1000);
 
-      return NextResponse.json({
-        live: latestReading,
-        readings: realTimeReadings,
-      });
-    }
-
-    let intervalMs = 5 * 60 * 1000;
-    if (minutes === 15) intervalMs = 15 * 60 * 1000;
-    else if (minutes === 60) intervalMs = 60 * 1000;
-    else if (minutes === 1440) intervalMs = 60 * 60 * 1000;
-
-    const afterTimestamp = new Date(latestReading.timestamp.getTime());
-
-    const allAfterLive = await prisma.sensorReading.findMany({
+    const rawReadings = await prisma.sensorReading.findMany({
       where: {
         timestamp: {
-          gt: afterTimestamp,
+          gte: fromTimestamp,
         },
       },
       orderBy: {
@@ -95,10 +77,17 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    const spacedReadings = [];
-    let nextAllowedTime = new Date(afterTimestamp.getTime() + intervalMs);
+    // Compute spacing interval
+    let intervalMs = 5 * 60 * 1000; // default = 5 min
+    if (minutes === 15) intervalMs = 15 * 60 * 1000;
+    else if (minutes === 60) intervalMs = 1 * 60 * 1000;
+    else if (minutes === 1440) intervalMs = 60 * 60 * 1000;
 
-    for (const reading of allAfterLive) {
+    // Reduce to spaced readings
+    const spacedReadings = [];
+    let nextAllowedTime = new Date(fromTimestamp);
+
+    for (const reading of rawReadings) {
       if (reading.timestamp >= nextAllowedTime) {
         spacedReadings.push(reading);
         nextAllowedTime = new Date(reading.timestamp.getTime() + intervalMs);
