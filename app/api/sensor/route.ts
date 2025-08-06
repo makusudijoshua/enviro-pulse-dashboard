@@ -7,8 +7,11 @@ const prisma = new PrismaClient();
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    console.log("📥 Incoming POST body:", body); // <-- Debug log
+
     const { temperature, humidity, sound, soundPeakToPeak } = body;
 
+    // Validate all fields are present and of correct type
     if (
       typeof temperature !== "number" ||
       typeof humidity !== "number" ||
@@ -16,7 +19,11 @@ export async function POST(req: NextRequest) {
       typeof soundPeakToPeak !== "number"
     ) {
       return NextResponse.json(
-        { error: "Invalid data format" },
+        {
+          error:
+            "Invalid data format. Required fields: temperature, humidity, sound, soundPeakToPeak (all numbers).",
+          received: body, // <-- Include received body for easier debugging
+        },
         { status: 400 },
       );
     }
@@ -32,7 +39,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, reading: saved });
   } catch (err) {
-    console.error("POST /api/sensor error:", err);
+    console.error("❌ POST /api/sensor error:", err);
     return NextResponse.json(
       { error: "Failed to save to database" },
       { status: 500 },
@@ -55,9 +62,7 @@ export async function GET(req: NextRequest) {
     }
 
     const latestReading = await prisma.sensorReading.findFirst({
-      orderBy: {
-        timestamp: "desc",
-      },
+      orderBy: { timestamp: "desc" },
       select: {
         timestamp: true,
         temperature: true,
@@ -113,7 +118,7 @@ export async function GET(req: NextRequest) {
       readings: spacedReadings,
     });
   } catch (err) {
-    console.error("GET /api/sensor error:", err);
+    console.error("❌ GET /api/sensor error:", err);
     return NextResponse.json(
       { error: "Failed to fetch sensor readings" },
       { status: 500 },
