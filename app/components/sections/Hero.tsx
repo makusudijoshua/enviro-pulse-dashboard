@@ -87,7 +87,10 @@ const Hero = () => {
     "Sound Level": <AudioLines className="h-6 w-6" />,
   };
 
-  console.log("P2P Values:", readings.map((r) => r.soundPeakToPeak));
+  console.log(
+    "P2P Values:",
+    readings.map((r) => r.soundPeakToPeak),
+  );
 
   return (
     <section className="pt-20 flex flex-col gap-8">
@@ -117,6 +120,7 @@ const Hero = () => {
             <Card
               recentPeakToPeakData={readings
                 .filter((r) => typeof r.soundPeakToPeak === "number")
+                .slice(-10)
                 .map((r) => r.soundPeakToPeak)}
               currentReading={latest?.sound ?? null}
               previousReading={previous?.sound ?? null}
