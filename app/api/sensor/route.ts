@@ -3,15 +3,17 @@ import { PrismaClient } from "@/app/generated/prisma";
 
 const prisma = new PrismaClient();
 
+// === POST: Save Sensor Data ===
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { temperature, humidity, sound } = body;
+    const { temperature, humidity, sound, soundPeakToPeak } = body;
 
     if (
       typeof temperature !== "number" ||
       typeof humidity !== "number" ||
-      typeof sound !== "number"
+      typeof sound !== "number" ||
+      typeof soundPeakToPeak !== "number"
     ) {
       return NextResponse.json(
         { error: "Invalid data format" },
@@ -24,13 +26,11 @@ export async function POST(req: NextRequest) {
         temperature,
         humidity,
         sound,
+        soundPeakToPeak,
       },
     });
 
-    return NextResponse.json({
-      success: true,
-      reading: saved,
-    });
+    return NextResponse.json({ success: true, reading: saved });
   } catch (err) {
     console.error("POST /api/sensor error:", err);
     return NextResponse.json(
@@ -40,6 +40,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
+// === GET: Fetch Sensor Data ===
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -56,6 +57,13 @@ export async function GET(req: NextRequest) {
     const latestReading = await prisma.sensorReading.findFirst({
       orderBy: {
         timestamp: "desc",
+      },
+      select: {
+        timestamp: true,
+        temperature: true,
+        humidity: true,
+        sound: true,
+        soundPeakToPeak: true, // ✅ ensure this is selected
       },
     });
 
@@ -75,15 +83,21 @@ export async function GET(req: NextRequest) {
       orderBy: {
         timestamp: "asc",
       },
+      select: {
+        timestamp: true,
+        temperature: true,
+        humidity: true,
+        sound: true,
+        soundPeakToPeak: true, // ✅ include here too
+      },
     });
 
     // Compute spacing interval
-    let intervalMs = 5 * 60 * 1000; // default = 5 min
+    let intervalMs = 5 * 60 * 1000;
     if (minutes === 15) intervalMs = 15 * 60 * 1000;
     else if (minutes === 60) intervalMs = 1 * 60 * 1000;
     else if (minutes === 1440) intervalMs = 60 * 60 * 1000;
 
-    // Reduce to spaced readings
     const spacedReadings = [];
     let nextAllowedTime = new Date(fromTimestamp);
 

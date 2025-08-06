@@ -2,6 +2,7 @@
 
 import React from "react";
 import clsx from "clsx";
+import { LineChart, Line, ResponsiveContainer } from "recharts";
 
 interface SensorCardProps {
   type: "temperature" | "humidity" | "sound";
@@ -9,6 +10,7 @@ interface SensorCardProps {
   previousReading?: number | null;
   title: string;
   icon: React.ReactNode;
+  recentPeakToPeakData?: number[]; // <-- New prop
 }
 
 const getUnit = (type: string) => {
@@ -27,8 +29,7 @@ const getUnit = (type: string) => {
 const formatValue = (value: number | null, type: string) => {
   if (value === null) return "No data";
   const formatted = new Intl.NumberFormat().format(value);
-  const unit = getUnit(type);
-  return `${formatted} ${unit}`;
+  return `${formatted} ${getUnit(type)}`;
 };
 
 const getBarStyle = (type: string, value: number | null) => {
@@ -39,17 +40,14 @@ const getBarStyle = (type: string, value: number | null) => {
       if (value <= 18) return { width: "33%", color: "bg-blue-500" };
       if (value <= 28) return { width: "66%", color: "bg-yellow-500" };
       return { width: "100%", color: "bg-red-500" };
-
     case "humidity":
       if (value <= 30) return { width: "33%", color: "bg-blue-500" };
       if (value <= 60) return { width: "66%", color: "bg-yellow-500" };
       return { width: "100%", color: "bg-green-500" };
-
     case "sound":
       if (value <= 40) return { width: "33%", color: "bg-green-500" };
       if (value <= 70) return { width: "66%", color: "bg-orange-400" };
       return { width: "100%", color: "bg-red-500" };
-
     default:
       return { width: "0%", color: "bg-gray-300" };
   }
@@ -86,6 +84,7 @@ const Card: React.FC<SensorCardProps> = ({
   title,
   currentReading,
   previousReading,
+  recentPeakToPeakData,
 }) => {
   const bar = getBarStyle(type, currentReading);
   const tags = getTags(type);
@@ -131,6 +130,35 @@ const Card: React.FC<SensorCardProps> = ({
           </div>
         ))}
       </div>
+
+      {/* Peak-to-Peak Mini Chart */}
+      {type === "sound" &&
+        recentPeakToPeakData &&
+        recentPeakToPeakData.length > 0 && (
+          <div className="mt-4">
+            <h6 className="text-xs text-gray-500 mb-1">
+              Peak-to-Peak Amplitude
+            </h6>
+            <div className="h-20 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={recentPeakToPeakData.map((value, index) => ({
+                    index,
+                    value,
+                  }))}
+                >
+                  <Line
+                    type="monotone"
+                    dataKey="value"
+                    stroke="#f97316"
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
     </div>
   );
 };
