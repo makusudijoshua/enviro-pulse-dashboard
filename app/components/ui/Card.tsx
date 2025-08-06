@@ -133,7 +133,7 @@ const Card: React.FC<SensorCardProps> = ({
 
       {/* Peak-to-Peak Mini Chart */}
       {type === "sound" &&
-        recentPeakToPeakData &&
+        Array.isArray(recentPeakToPeakData) &&
         recentPeakToPeakData.length > 0 && (
           <div className="mt-4">
             <h6 className="text-xs text-gray-500 mb-1">
