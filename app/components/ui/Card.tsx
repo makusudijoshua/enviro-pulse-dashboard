@@ -10,7 +10,7 @@ interface SensorCardProps {
   previousReading?: number | null;
   title: string;
   icon: React.ReactNode;
-  recentPeakToPeakData?: number[]; // <-- New prop
+  recentPeakToPeakData?: number[]; // Optional
 }
 
 const getUnit = (type: string) => {
@@ -131,7 +131,7 @@ const Card: React.FC<SensorCardProps> = ({
         ))}
       </div>
 
-      {/* Peak-to-Peak Mini Chart */}
+      {/* Mini Chart for Peak-to-Peak Amplitude */}
       {type === "sound" &&
         Array.isArray(recentPeakToPeakData) &&
         recentPeakToPeakData.length > 0 && (
