@@ -87,6 +87,8 @@ const Hero = () => {
     "Sound Level": <AudioLines className="h-6 w-6" />,
   };
 
+  console.log("P2P Values:", readings.map((r) => r.soundPeakToPeak));
+
   return (
     <section className="pt-20 flex flex-col gap-8">
       <FilterBar filters={filters} onChange={setFilters} />
@@ -113,7 +115,9 @@ const Hero = () => {
           )}
           {filters.selectedSensors.includes("Sound Level") && (
             <Card
-              recentPeakToPeakData={readings.map((r) => r.soundPeakToPeak)}
+              recentPeakToPeakData={readings
+                .filter((r) => typeof r.soundPeakToPeak === "number")
+                .map((r) => r.soundPeakToPeak)}
               currentReading={latest?.sound ?? null}
               previousReading={previous?.sound ?? null}
               icon={icons["Sound Level"]}

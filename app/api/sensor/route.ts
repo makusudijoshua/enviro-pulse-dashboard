@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
         temperature: true,
         humidity: true,
         sound: true,
-        soundPeakToPeak: true, // ✅ ensure this is selected
+        soundPeakToPeak: true,
       },
     });
 
@@ -88,7 +88,7 @@ export async function GET(req: NextRequest) {
         temperature: true,
         humidity: true,
         sound: true,
-        soundPeakToPeak: true, // ✅ include here too
+        soundPeakToPeak: true,
       },
     });
 
