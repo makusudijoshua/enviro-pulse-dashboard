@@ -113,6 +113,7 @@ const Hero = () => {
           )}
           {filters.selectedSensors.includes("Sound Level") && (
             <Card
+              recentPeakToPeakData={readings.map((r) => r.soundPeakToPeak)}
               currentReading={latest?.sound ?? null}
               previousReading={previous?.sound ?? null}
               icon={icons["Sound Level"]}

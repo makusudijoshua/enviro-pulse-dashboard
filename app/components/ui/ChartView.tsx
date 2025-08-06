@@ -10,7 +10,6 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
-  ReferenceLine,
 } from "recharts";
 import { Reading } from "@/app/common/types/reading";
 
@@ -48,18 +47,6 @@ const formatUnit = (key: string, value: number) => {
   return value;
 };
 
-const getPeakToPeak = (data: Reading[], key: string): number | null => {
-  if (!data || data.length === 0) return null;
-  const values = data
-    .map((d) => d[key as keyof Reading])
-    .filter((v) => typeof v === "number");
-  if (values.length === 0) return null;
-
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  return parseFloat((max - min).toFixed(2));
-};
-
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload?.length) {
     return (
@@ -77,29 +64,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export default function ChartView({ data, sensors }: ChartViewProps) {
-  const temperaturePeakToPeak = sensors.includes("Temperature")
-    ? getPeakToPeak(data, "temperature")
-    : null;
-
-  const humidityPeakToPeak = sensors.includes("Humidity")
-    ? getPeakToPeak(data, "humidity")
-    : null;
-
-  const soundPeakToPeak = sensors.includes("Sound Level")
-    ? getPeakToPeak(data, "sound")
-    : null;
-
-  const tempMax = Math.max(...data.map((d) => d.temperature ?? -Infinity));
-  const tempMin = Math.min(...data.map((d) => d.temperature ?? Infinity));
-
-  const humMax = Math.max(...data.map((d) => d.humidity ?? -Infinity));
-  const humMin = Math.min(...data.map((d) => d.humidity ?? Infinity));
-
-  const soundMax = Math.max(...data.map((d) => d.sound ?? -Infinity));
-  const soundMin = Math.min(...data.map((d) => d.sound ?? Infinity));
-
   return (
-    <div className="w-full h-[440px] bg-white p-6 rounded-xl shadow-md">
+    <div className="w-full h-[400px] bg-white p-6 rounded-xl shadow-md">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart
           data={data}
@@ -121,57 +87,6 @@ export default function ChartView({ data, sensors }: ChartViewProps) {
           <Tooltip content={<CustomTooltip />} />
           <Legend />
 
-          {/* Peak-to-peak reference lines */}
-          {sensors.includes("Temperature") && (
-            <>
-              <ReferenceLine
-                y={tempMax}
-                stroke="#3b82f6"
-                strokeDasharray="3 3"
-                label={{ value: "Temp Max", fill: "#3b82f6", fontSize: 10 }}
-              />
-              <ReferenceLine
-                y={tempMin}
-                stroke="#3b82f6"
-                strokeDasharray="3 3"
-                label={{ value: "Temp Min", fill: "#3b82f6", fontSize: 10 }}
-              />
-            </>
-          )}
-          {sensors.includes("Humidity") && (
-            <>
-              <ReferenceLine
-                y={humMax}
-                stroke="#10b981"
-                strokeDasharray="3 3"
-                label={{ value: "Hum Max", fill: "#10b981", fontSize: 10 }}
-              />
-              <ReferenceLine
-                y={humMin}
-                stroke="#10b981"
-                strokeDasharray="3 3"
-                label={{ value: "Hum Min", fill: "#10b981", fontSize: 10 }}
-              />
-            </>
-          )}
-          {sensors.includes("Sound Level") && (
-            <>
-              <ReferenceLine
-                y={soundMax}
-                stroke="#f97316"
-                strokeDasharray="3 3"
-                label={{ value: "Sound Max", fill: "#f97316", fontSize: 10 }}
-              />
-              <ReferenceLine
-                y={soundMin}
-                stroke="#f97316"
-                strokeDasharray="3 3"
-                label={{ value: "Sound Min", fill: "#f97316", fontSize: 10 }}
-              />
-            </>
-          )}
-
-          {/* Main signal lines */}
           {sensors.includes("Temperature") && (
             <Line
               type="monotone"

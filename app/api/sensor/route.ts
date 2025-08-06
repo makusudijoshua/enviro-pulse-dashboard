@@ -6,12 +6,13 @@ const prisma = new PrismaClient();
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { temperature, humidity, sound } = body;
+    const { temperature, humidity, sound, soundPeakToPeak } = body;
 
     if (
       typeof temperature !== "number" ||
       typeof humidity !== "number" ||
-      typeof sound !== "number"
+      typeof sound !== "number" ||
+      typeof soundPeakToPeak !== "number"
     ) {
       return NextResponse.json(
         { error: "Invalid data format" },
@@ -24,13 +25,11 @@ export async function POST(req: NextRequest) {
         temperature,
         humidity,
         sound,
+        soundPeakToPeak,
       },
     });
 
-    return NextResponse.json({
-      success: true,
-      reading: saved,
-    });
+    return NextResponse.json({ success: true, reading: saved });
   } catch (err) {
     console.error("POST /api/sensor error:", err);
     return NextResponse.json(

@@ -12,11 +12,12 @@ datasource db {
 
 // ==================== Models ====================
 model SensorReading {
-  id          String   @id @default(cuid())
-  temperature Float
-  humidity    Float
-  sound       Int
-  timestamp   DateTime @default(now())
+  id               String   @id @default(cuid())
+  temperature      Float
+  humidity         Float
+  sound            Int
+  soundPeakToPeak  Float
+  timestamp        DateTime  @default(now())
 
   @@map("sensor_readings")
 }
