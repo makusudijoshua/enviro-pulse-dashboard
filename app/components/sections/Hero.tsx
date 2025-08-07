@@ -118,7 +118,10 @@ const Hero = () => {
               icon={icons["Sound Level"]}
               currentReading={latest?.sound ?? null}
               previousReading={previous?.sound ?? null}
-              recentPeakToPeakData={[30, 32, 33, 35, 34, 32, 31]}
+              recentPeakToPeakData={readings
+                .filter((r) => typeof r.soundPeakToPeak === "number")
+                .map((r) => r.soundPeakToPeak)
+                .slice(0, 20)}
             />
           )}
         </div>
