@@ -2,7 +2,14 @@
 
 import React from "react";
 import clsx from "clsx";
-import { LineChart, Line, ResponsiveContainer } from "recharts";
+import {
+  LineChart,
+  Line,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+  Tooltip,
+} from "recharts";
 
 interface SensorCardProps {
   type: "temperature" | "humidity" | "sound";
@@ -10,7 +17,7 @@ interface SensorCardProps {
   previousReading?: number | null;
   title: string;
   icon: React.ReactNode;
-  recentPeakToPeakData?: number[]; // Optional
+  recentPeakToPeakData?: number[]; // Only used for sound
 }
 
 const getUnit = (type: string) => {
@@ -131,7 +138,6 @@ const Card: React.FC<SensorCardProps> = ({
         ))}
       </div>
 
-      {/* Mini Chart for Peak-to-Peak Amplitude */}
       {type === "sound" &&
         Array.isArray(recentPeakToPeakData) &&
         recentPeakToPeakData.length > 0 && (
@@ -147,6 +153,9 @@ const Card: React.FC<SensorCardProps> = ({
                     value,
                   }))}
                 >
+                  <XAxis dataKey="index" hide />
+                  <YAxis hide domain={["auto", "auto"]} />
+                  <Tooltip />
                   <Line
                     type="monotone"
                     dataKey="value"
