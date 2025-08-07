@@ -9,7 +9,7 @@ import { AudioLines, ThermometerSun, Waves } from "lucide-react";
 import { Reading } from "@/app/common/types/reading";
 
 const initialFilters: FilterState = {
-  selectedTime: "5m",
+  selectedTime: "Live",
   selectedView: "Grid",
   selectedSensors: ["Temperature", "Humidity", "Sound Level"],
 };
@@ -118,12 +118,10 @@ const Hero = () => {
               icon={icons["Sound Level"]}
               currentReading={latest?.sound ?? null}
               previousReading={previous?.sound ?? null}
-              recentPeakToPeakData={
-                readings
-                  .filter((r) => typeof r.soundPeakToPeak === "number")
-                  .map((r) => r.soundPeakToPeak)
-                  .slice(0, 20)
-              }
+              recentPeakToPeakData={readings
+                .filter((r) => typeof r.soundPeakToPeak === "number")
+                .map((r) => r.soundPeakToPeak)
+                .slice(0, 20)}
             />
           )}
         </div>
