@@ -139,35 +139,33 @@ const Card: React.FC<SensorCardProps> = ({
       </div>
 
       {type === "sound" &&
-        Array.isArray(recentPeakToPeakData) &&
-        recentPeakToPeakData.length > 0 && (
-          <div className="mt-4">
-            <h6 className="text-xs text-gray-500 mb-1">
-              Peak-to-Peak Amplitude
-            </h6>
-            <div className="h-20 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart
-                  data={recentPeakToPeakData.map((value, index) => ({
-                    index,
-                    value,
-                  }))}
-                >
-                  <XAxis dataKey="index" hide />
-                  <YAxis hide domain={["auto", "auto"]} />
-                  <Tooltip />
-                  <Line
-                    type="monotone"
-                    dataKey="value"
-                    stroke="#f97316"
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        )}
+          Array.isArray(recentPeakToPeakData) &&
+          recentPeakToPeakData.length > 0 && (
+              <div className="mt-4">
+                <h6 className="text-xs text-gray-500 mb-1">
+                  Peak-to-Peak Amplitude
+                </h6>
+                <div className="w-full h-24">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
+                        data={recentPeakToPeakData.map((value, index) => ({
+                          index,
+                          amplitude: value, // 🧠 use `amplitude` as the dataKey
+                        }))}
+                    >
+                      <Line
+                          type="monotone"
+                          dataKey="amplitude"
+                          stroke="#f97316"
+                          strokeWidth={2}
+                          dot={false}
+                          isAnimationActive={false}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+          )}
     </div>
   );
 };
