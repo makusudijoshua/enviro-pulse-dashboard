@@ -1,51 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@/app/generated/prisma";
-
-const prisma = new PrismaClient();
-
-// === POST: Save Sensor Data ===
-export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json();
-    console.log("📥 Incoming POST body:", body); // <-- Debug log
-
-    const { temperature, humidity, sound, soundPeakToPeak } = body;
-
-    // Validate all fields are present and of correct type
-    if (
-      typeof temperature !== "number" ||
-      typeof humidity !== "number" ||
-      typeof sound !== "number" ||
-      typeof soundPeakToPeak !== "number"
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            "Invalid data format. Required fields: temperature, humidity, sound, soundPeakToPeak (all numbers).",
-          received: body, // <-- Include received body for easier debugging
-        },
-        { status: 400 },
-      );
-    }
-
-    const saved = await prisma.sensorReading.create({
-      data: {
-        temperature,
-        humidity,
-        sound,
-        soundPeakToPeak,
-      },
-    });
-
-    return NextResponse.json({ success: true, reading: saved });
-  } catch (err) {
-    console.error("❌ POST /api/sensor error:", err);
-    return NextResponse.json(
-      { error: "Failed to save to database" },
-      { status: 500 },
-    );
-  }
-}
+import { prisma } from "@/app/common/lib/prisma";
 
 // === GET: Fetch Sensor Data ===
 export async function GET(req: NextRequest) {
@@ -97,25 +51,37 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // Compute spacing interval
-    let intervalMs = 5 * 60 * 1000;
-    if (minutes === 15) intervalMs = 15 * 60 * 1000;
-    else if (minutes === 60) intervalMs = 1 * 60 * 1000;
-    else if (minutes === 1440) intervalMs = 60 * 60 * 1000;
+    let readingsToReturn: typeof rawReadings = [];
 
-    const spacedReadings = [];
-    let nextAllowedTime = new Date(fromTimestamp);
+    if (minutes === 0 || minutes === 5) {
+      // Live and 5m → last 20 raw readings
+      readingsToReturn = rawReadings.slice(-20);
+    } else {
+      // Spacing logic for longer ranges
+      let intervalMs = 5 * 60 * 1000; // default for 15m
 
-    for (const reading of rawReadings) {
-      if (reading.timestamp >= nextAllowedTime) {
-        spacedReadings.push(reading);
-        nextAllowedTime = new Date(reading.timestamp.getTime() + intervalMs);
+      if (minutes === 15) intervalMs = 5 * 60 * 1000;
+      else if (minutes === 60) intervalMs = 60 * 1000;
+      else if (minutes === 1440) intervalMs = 60 * 60 * 1000;
+
+      const spacedReadings = [];
+      let nextAllowedTime = new Date(fromTimestamp);
+
+      for (const reading of rawReadings) {
+        if (reading.timestamp >= nextAllowedTime) {
+          spacedReadings.push(reading);
+          nextAllowedTime = new Date(reading.timestamp.getTime() + intervalMs);
+        }
       }
+
+      // Fallback to latest 20 if spaced result too short
+      readingsToReturn =
+        spacedReadings.length >= 2 ? spacedReadings : rawReadings.slice(-20);
     }
 
     return NextResponse.json({
       live: latestReading,
-      readings: spacedReadings,
+      readings: readingsToReturn,
     });
   } catch (err) {
     console.error("❌ GET /api/sensor error:", err);
