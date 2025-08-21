@@ -3,7 +3,7 @@
 import React from "react";
 
 const timeOptions = ["Live", "5m", "15m", "1h", "1d"] as const;
-const views = ["Grid", "Chart", "Table"] as const;
+const views = ["Grid", "Chart"] as const; // Removed "Table"
 const sensors = ["Temperature", "Humidity", "Sound Level"] as const;
 
 export type TimeOption = (typeof timeOptions)[number];
@@ -45,14 +45,22 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
     onChange({ ...filters, selectedSensors: updatedSensors });
   };
 
-  const realTimeLabel =
-    filters.selectedTime === "Live"
-      ? "Live (every 5s)"
-      : filters.selectedTime === "1h"
-        ? "1 min gap between readings"
-        : filters.selectedTime === "1d"
-          ? "1 hour gap between readings"
-          : `Data every ${filters.selectedTime}`;
+  const realTimeLabel = (() => {
+    switch (filters.selectedTime) {
+      case "Live":
+        return "Live: updates every 5 seconds";
+      case "5m":
+        return "Past 5 minutes (20 readings)";
+      case "15m":
+        return "Every 5 minutes after latest";
+      case "1h":
+        return "Every 1 minute after latest";
+      case "1d":
+        return "Every 1 hour after latest";
+      default:
+        return "";
+    }
+  })();
 
   const isChartDisabled = ["Live", "5m", "15m"].includes(filters.selectedTime);
 

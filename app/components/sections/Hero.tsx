@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import Card from "@/app/components/ui/Card";
-import TableView from "@/app/components/ui/TableView";
 import ChartView from "@/app/components/ui/ChartView";
 import FilterBar, { FilterState } from "@/app/components/ui/FilterBar";
 import { AudioLines, ThermometerSun, Waves } from "lucide-react";
@@ -100,6 +99,7 @@ const Hero = () => {
               icon={icons["Temperature"]}
               title="Temperature"
               type="temperature"
+              selectedTime={filters.selectedTime}
             />
           )}
           {filters.selectedSensors.includes("Humidity") && (
@@ -109,6 +109,7 @@ const Hero = () => {
               icon={icons["Humidity"]}
               title="Humidity"
               type="humidity"
+              selectedTime={filters.selectedTime}
             />
           )}
           {filters.selectedSensors.includes("Sound Level") && (
@@ -118,6 +119,7 @@ const Hero = () => {
               icon={icons["Sound Level"]}
               currentReading={latest?.sound ?? null}
               previousReading={previous?.sound ?? null}
+              selectedTime={filters.selectedTime}
               recentPeakToPeakData={
                 filters.selectedTime === "1h"
                   ? readings
@@ -135,12 +137,6 @@ const Hero = () => {
       {filters.selectedView === "Chart" && readings.length > 0 && (
         <div className="w-full">
           <ChartView sensors={filters.selectedSensors} data={readings} />
-        </div>
-      )}
-
-      {filters.selectedView === "Table" && readings.length > 0 && (
-        <div className="w-full">
-          <TableView sensors={filters.selectedSensors} data={readings} />
         </div>
       )}
     </section>
