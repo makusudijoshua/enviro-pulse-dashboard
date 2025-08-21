@@ -1,6 +1,42 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/common/lib/prisma";
 
+// POST /api/sensor
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+
+    const {
+      temperature,
+      humidity,
+      sound,
+      soundPeakToPeak,
+      wifiConnected,
+      ipAddress,
+    } = body;
+
+    const created = await prisma.sensorReading.create({
+      data: {
+        temperature,
+        humidity,
+        sound,
+        soundPeakToPeak,
+        wifiConnected,
+        ipAddress,
+      },
+    });
+
+    return NextResponse.json({ success: true, created }, { status: 201 });
+  } catch (err) {
+    console.error("❌ POST /api/sensor error:", err);
+    return NextResponse.json(
+      { error: "Failed to save sensor reading" },
+      { status: 500 },
+    );
+  }
+}
+
+// GET /api/sensor?minutes=5
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -14,7 +50,6 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Latest reading (baseline for all)
     const latestReading = await prisma.sensorReading.findFirst({
       orderBy: { timestamp: "desc" },
       select: {
@@ -23,8 +58,8 @@ export async function GET(req: NextRequest) {
         humidity: true,
         sound: true,
         soundPeakToPeak: true,
-        batteryVoltage: true,
-        batteryPercentage: true,
+        wifiConnected: true,
+        ipAddress: true,
       },
     });
 
@@ -35,7 +70,6 @@ export async function GET(req: NextRequest) {
     const now = latestReading.timestamp;
     const fromTimestamp = new Date(now.getTime() - minutes * 60 * 1000);
 
-    // Case: Live – return only latest
     if (minutes === 0) {
       return NextResponse.json({
         live: latestReading,
@@ -43,11 +77,11 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // Case: 5m or 15m – return reading X minutes after the latest timestamp
     if (minutes === 5 || minutes === 15) {
       const targetTime = new Date(
         latestReading.timestamp.getTime() + minutes * 60 * 1000,
       );
+
       const readingAfterInterval = await prisma.sensorReading.findFirst({
         where: {
           timestamp: {
@@ -61,8 +95,8 @@ export async function GET(req: NextRequest) {
           humidity: true,
           sound: true,
           soundPeakToPeak: true,
-          batteryVoltage: true,
-          batteryPercentage: true,
+          wifiConnected: true,
+          ipAddress: true,
         },
       });
 
@@ -72,7 +106,6 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // Case: 1h or 1d – return spaced readings for chart view
     const rawReadings = await prisma.sensorReading.findMany({
       where: {
         timestamp: {
@@ -86,16 +119,13 @@ export async function GET(req: NextRequest) {
         humidity: true,
         sound: true,
         soundPeakToPeak: true,
-        batteryVoltage: true,
-        batteryPercentage: true,
+        wifiConnected: true,
+        ipAddress: true,
       },
     });
 
-    let intervalMs = 60 * 1000; // default 1 minute for 1h
-
-    if (minutes === 1440) {
-      intervalMs = 60 * 60 * 1000; // 1 hour for 1d
-    }
+    let intervalMs = 60 * 1000;
+    if (minutes === 1440) intervalMs = 60 * 60 * 1000;
 
     const spacedReadings = [];
     let nextAllowedTime = new Date(fromTimestamp);

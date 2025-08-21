@@ -3,5 +3,7 @@ export type Reading = {
   humidity: number;
   sound: number;
   soundPeakToPeak: number;
+  wifiConnected: boolean;
+  ipAddress: string;
   timestamp: string;
 };

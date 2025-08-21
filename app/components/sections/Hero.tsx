@@ -88,7 +88,12 @@ const Hero = () => {
 
   return (
     <section className="pt-20 flex flex-col gap-8">
-      <FilterBar filters={filters} onChange={setFilters} />
+      <FilterBar
+        filters={filters}
+        onChange={setFilters}
+        wifiConnected={latest?.wifiConnected ?? false}
+        ipAddress={latest?.ipAddress ?? "Unknown IP"}
+      />
 
       {filters.selectedView === "Grid" && (
         <div className="flex flex-col gap-16 md:flex-row md:gap-6">

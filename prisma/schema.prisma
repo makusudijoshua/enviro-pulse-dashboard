@@ -17,6 +17,8 @@ model SensorReading {
   humidity         Float
   sound            Int
   soundPeakToPeak  Float
+  wifiConnected    Boolean
+  ipAddress        String
   timestamp        DateTime  @default(now())
 
   @@map("sensor_readings")

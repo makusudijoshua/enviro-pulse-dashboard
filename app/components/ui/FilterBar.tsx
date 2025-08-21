@@ -3,7 +3,7 @@
 import React from "react";
 
 const timeOptions = ["Live", "5m", "15m", "1h", "1d"] as const;
-const views = ["Grid", "Chart"] as const; // Removed "Table"
+const views = ["Grid", "Chart"] as const;
 const sensors = ["Temperature", "Humidity", "Sound Level"] as const;
 
 export type TimeOption = (typeof timeOptions)[number];
@@ -19,9 +19,17 @@ export type FilterState = {
 type FilterBarProps = {
   filters: FilterState;
   onChange: (updated: FilterState) => void;
+
+  wifiConnected: boolean;
+  ipAddress: string;
 };
 
-export default function FilterBar({ filters, onChange }: FilterBarProps) {
+export default function FilterBar({
+  filters,
+  onChange,
+  wifiConnected,
+  ipAddress,
+}: FilterBarProps) {
   const handleTimeChange = (time: TimeOption) => {
     onChange({ ...filters, selectedTime: time });
   };
@@ -45,27 +53,11 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
     onChange({ ...filters, selectedSensors: updatedSensors });
   };
 
-  const realTimeLabel = (() => {
-    switch (filters.selectedTime) {
-      case "Live":
-        return "Live: updates every 5 seconds";
-      case "5m":
-        return "Past 5 minutes (20 readings)";
-      case "15m":
-        return "Every 5 minutes after latest";
-      case "1h":
-        return "Every 1 minute after latest";
-      case "1d":
-        return "Every 1 hour after latest";
-      default:
-        return "";
-    }
-  })();
-
   const isChartDisabled = ["Live", "5m", "15m"].includes(filters.selectedTime);
 
   return (
     <div className="flex flex-col gap-6 p-6 bg-white shadow-md rounded-xl">
+      {/* Time + View Buttons */}
       <div className="flex w-full justify-between items-center">
         <div className="flex flex-wrap gap-3">
           {timeOptions.map((option) => (
@@ -102,11 +94,9 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
             );
           })}
         </div>
-        <div className="text-xs text-gray-600 hidden md:block">
-          {realTimeLabel}
-        </div>
       </div>
 
+      {/* Sensor Checkboxes */}
       <div className="flex flex-wrap gap-5">
         {sensors.map((sensor) => (
           <label key={sensor} className="flex items-center gap-1 text-sm">
@@ -119,6 +109,28 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
             {sensor}
           </label>
         ))}
+      </div>
+
+      {/* Wi-Fi Status */}
+      <div className="flex items-center gap-3 text-sm text-gray-700 pt-3 border-t border-gray-200">
+        <span
+          className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium ${
+            wifiConnected
+              ? "bg-green-100 text-green-700"
+              : "bg-red-100 text-red-700"
+          }`}
+        >
+          <span
+            className={`h-2 w-2 rounded-full ${
+              wifiConnected ? "bg-green-500" : "bg-red-500"
+            }`}
+          ></span>
+          {wifiConnected ? "Wi-Fi Connected" : "Wi-Fi Disconnected"}
+        </span>
+
+        <span className="text-xs text-gray-500 ml-auto">
+          IP: {ipAddress || "N/A"}
+        </span>
       </div>
     </div>
   );
