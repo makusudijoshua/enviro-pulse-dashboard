@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/common/lib/prisma";
 
-// === GET: Fetch Sensor Data ===
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -15,6 +14,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    // Latest reading (baseline for all)
     const latestReading = await prisma.sensorReading.findFirst({
       orderBy: { timestamp: "desc" },
       select: {
@@ -23,6 +23,8 @@ export async function GET(req: NextRequest) {
         humidity: true,
         sound: true,
         soundPeakToPeak: true,
+        batteryVoltage: true,
+        batteryPercentage: true,
       },
     });
 
@@ -33,51 +35,80 @@ export async function GET(req: NextRequest) {
     const now = latestReading.timestamp;
     const fromTimestamp = new Date(now.getTime() - minutes * 60 * 1000);
 
+    // Case: Live – return only latest
+    if (minutes === 0) {
+      return NextResponse.json({
+        live: latestReading,
+        readings: [latestReading],
+      });
+    }
+
+    // Case: 5m or 15m – return reading X minutes after the latest timestamp
+    if (minutes === 5 || minutes === 15) {
+      const targetTime = new Date(
+        latestReading.timestamp.getTime() + minutes * 60 * 1000,
+      );
+      const readingAfterInterval = await prisma.sensorReading.findFirst({
+        where: {
+          timestamp: {
+            gte: targetTime,
+          },
+        },
+        orderBy: { timestamp: "asc" },
+        select: {
+          timestamp: true,
+          temperature: true,
+          humidity: true,
+          sound: true,
+          soundPeakToPeak: true,
+          batteryVoltage: true,
+          batteryPercentage: true,
+        },
+      });
+
+      return NextResponse.json({
+        live: latestReading,
+        readings: readingAfterInterval ? [readingAfterInterval] : [],
+      });
+    }
+
+    // Case: 1h or 1d – return spaced readings for chart view
     const rawReadings = await prisma.sensorReading.findMany({
       where: {
         timestamp: {
           gte: fromTimestamp,
         },
       },
-      orderBy: {
-        timestamp: "asc",
-      },
+      orderBy: { timestamp: "asc" },
       select: {
         timestamp: true,
         temperature: true,
         humidity: true,
         sound: true,
         soundPeakToPeak: true,
+        batteryVoltage: true,
+        batteryPercentage: true,
       },
     });
 
-    let readingsToReturn: typeof rawReadings = [];
+    let intervalMs = 60 * 1000; // default 1 minute for 1h
 
-    if (minutes === 0 || minutes === 5) {
-      // Live and 5m → last 20 raw readings
-      readingsToReturn = rawReadings.slice(-20);
-    } else {
-      // Spacing logic for longer ranges
-      let intervalMs = 5 * 60 * 1000; // default for 15m
-
-      if (minutes === 15) intervalMs = 5 * 60 * 1000;
-      else if (minutes === 60) intervalMs = 60 * 1000;
-      else if (minutes === 1440) intervalMs = 60 * 60 * 1000;
-
-      const spacedReadings = [];
-      let nextAllowedTime = new Date(fromTimestamp);
-
-      for (const reading of rawReadings) {
-        if (reading.timestamp >= nextAllowedTime) {
-          spacedReadings.push(reading);
-          nextAllowedTime = new Date(reading.timestamp.getTime() + intervalMs);
-        }
-      }
-
-      // Fallback to latest 20 if spaced result too short
-      readingsToReturn =
-        spacedReadings.length >= 2 ? spacedReadings : rawReadings.slice(-20);
+    if (minutes === 1440) {
+      intervalMs = 60 * 60 * 1000; // 1 hour for 1d
     }
+
+    const spacedReadings = [];
+    let nextAllowedTime = new Date(fromTimestamp);
+
+    for (const reading of rawReadings) {
+      if (reading.timestamp >= nextAllowedTime) {
+        spacedReadings.push(reading);
+        nextAllowedTime = new Date(reading.timestamp.getTime() + intervalMs);
+      }
+    }
+
+    const readingsToReturn =
+      spacedReadings.length >= 2 ? spacedReadings : rawReadings.slice(-20);
 
     return NextResponse.json({
       live: latestReading,
