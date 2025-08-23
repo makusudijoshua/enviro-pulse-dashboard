@@ -102,6 +102,10 @@ const getPreviousLabel = (
       return `${formatted} · 5 minutes after`;
     case "15m":
       return `${formatted} · 15 minutes after`;
+    case "1h":
+      return `${formatted} · 1 hour after`;
+    case "1d":
+      return `${formatted} · 1 day after`;
     default:
       return formatted;
   }
@@ -160,6 +164,7 @@ const Card: React.FC<SensorCardProps> = ({
       </div>
 
       {type === "sound" &&
+        selectedTime === "Live" &&
         Array.isArray(recentPeakToPeakData) &&
         recentPeakToPeakData.length > 0 && (
           <div className="mt-4">

@@ -126,12 +126,12 @@ const Hero = () => {
               previousReading={previous?.sound ?? null}
               selectedTime={filters.selectedTime}
               recentPeakToPeakData={
-                filters.selectedTime === "1h"
-                  ? readings
-                      .map((r) => r.soundPeakToPeak)
-                      .filter((v): v is number => typeof v === "number")
-                      .slice(-20)
-                      .reverse()
+                filters.selectedTime === "Live" &&
+                latest?.soundPeakToPeak != null
+                  ? [
+                      ...readings.slice(-29).map((r) => r.soundPeakToPeak),
+                      latest.soundPeakToPeak,
+                    ].filter((v): v is number => typeof v === "number")
                   : []
               }
             />
