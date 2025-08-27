@@ -18,6 +18,7 @@ const Hero = () => {
   const [readings, setReadings] = useState<Reading[]>([]);
   const [latest, setLatest] = useState<Reading | null>(null);
   const [previous, setPrevious] = useState<Reading | null>(null);
+  const [hasReceivedData, setHasReceivedData] = useState(false); // <-- NEW
 
   useEffect(() => {
     setFilters((prev) => {
@@ -58,17 +59,19 @@ const Hero = () => {
           Array.isArray(data.readings) &&
           data.readings.every((r: any) => r.timestamp)
         ) {
+          setHasReceivedData(true); // <-- Set to true when valid readings are received
           setLatest(data.live);
           setReadings(data.readings);
           setPrevious(data.readings[0] ?? null);
         } else {
-          console.warn("Unexpected API response:", data);
+          setHasReceivedData(false);
           setLatest(null);
           setReadings([]);
           setPrevious(null);
         }
       } catch (err) {
         console.error("Failed to fetch sensor data", err);
+        setHasReceivedData(false);
         setLatest(null);
         setReadings([]);
         setPrevious(null);
@@ -86,6 +89,10 @@ const Hero = () => {
     "Sound Level": <AudioLines className="h-6 w-6" />,
   };
 
+  const getSafeValue = (value: number | null | undefined): number => {
+    return hasReceivedData && typeof value === "number" ? value : 0;
+  };
+
   return (
     <section className="pt-20 flex flex-col gap-8">
       <FilterBar
@@ -99,8 +106,8 @@ const Hero = () => {
         <div className="flex flex-col gap-16 md:flex-row md:gap-6">
           {filters.selectedSensors.includes("Temperature") && (
             <Card
-              currentReading={latest?.temperature ?? null}
-              previousReading={previous?.temperature ?? null}
+              currentReading={getSafeValue(latest?.temperature)}
+              previousReading={getSafeValue(previous?.temperature)}
               icon={icons["Temperature"]}
               title="Temperature"
               type="temperature"
@@ -109,8 +116,8 @@ const Hero = () => {
           )}
           {filters.selectedSensors.includes("Humidity") && (
             <Card
-              currentReading={latest?.humidity ?? null}
-              previousReading={previous?.humidity ?? null}
+              currentReading={getSafeValue(latest?.humidity)}
+              previousReading={getSafeValue(previous?.humidity)}
               icon={icons["Humidity"]}
               title="Humidity"
               type="humidity"
@@ -122,28 +129,29 @@ const Hero = () => {
               type="sound"
               title="Sound"
               icon={icons["Sound Level"]}
-              currentReading={latest?.sound ?? null}
-              previousReading={previous?.sound ?? null}
+              currentReading={getSafeValue(latest?.sound)}
+              previousReading={getSafeValue(previous?.sound)}
               selectedTime={filters.selectedTime}
               recentPeakToPeakData={
-                filters.selectedTime === "Live" &&
-                latest?.soundPeakToPeak != null
+                filters.selectedTime === "Live" && hasReceivedData
                   ? [
                       ...readings.slice(-29).map((r) => r.soundPeakToPeak),
-                      latest.soundPeakToPeak,
+                      latest?.soundPeakToPeak ?? 0,
                     ].filter((v): v is number => typeof v === "number")
-                  : []
+                  : Array(30).fill(0) // Reset chart to 0s
               }
             />
           )}
         </div>
       )}
 
-      {filters.selectedView === "Chart" && readings.length > 0 && (
-        <div className="w-full">
-          <ChartView sensors={filters.selectedSensors} data={readings} />
-        </div>
-      )}
+      {filters.selectedView === "Chart" &&
+        hasReceivedData &&
+        readings.length > 0 && (
+          <div className="w-full">
+            <ChartView sensors={filters.selectedSensors} data={readings} />
+          </div>
+        )}
     </section>
   );
 };
