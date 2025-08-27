@@ -123,6 +123,21 @@ const Card: React.FC<SensorCardProps> = ({
   const bar = getBarStyle(type, currentReading);
   const tags = getTags(type);
 
+  // Convert recentPeakToPeakData to chart format with timestamps
+  const peakData =
+    Array.isArray(recentPeakToPeakData) && recentPeakToPeakData.length > 1
+      ? recentPeakToPeakData.map((value, index) => ({
+          time: new Date(
+            Date.now() - (recentPeakToPeakData.length - 1 - index) * 5000,
+          ).toLocaleTimeString("en-GB", {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          }),
+          amplitude: value,
+        }))
+      : [];
+
   return (
     <div
       role="region"
@@ -163,47 +178,39 @@ const Card: React.FC<SensorCardProps> = ({
         ))}
       </div>
 
-      {type === "sound" &&
-        selectedTime === "Live" &&
-        Array.isArray(recentPeakToPeakData) &&
-        recentPeakToPeakData.length > 0 && (
-          <div className="mt-4">
-            <h6 className="text-xs text-gray-500 mb-1">
-              Peak-to-Peak Amplitude
-            </h6>
-            <div className="w-full h-24">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart
-                  data={recentPeakToPeakData.map((value, index) => ({
-                    index,
-                    amplitude: value,
-                  }))}
-                  margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-                >
-                  <XAxis dataKey="index" hide />
-                  <YAxis
-                    dataKey="amplitude"
-                    domain={["auto", "auto"]}
-                    tick={{ fontSize: 10 }}
-                    width={30}
-                  />
-                  <Tooltip
-                    formatter={(value: any) => [`${value} peak`, "Amplitude"]}
-                    contentStyle={{ fontSize: "0.75rem" }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="amplitude"
-                    stroke="#f97316"
-                    strokeWidth={2}
-                    dot={false}
-                    isAnimationActive={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+      {type === "sound" && selectedTime === "Live" && peakData.length > 1 && (
+        <div className="mt-4">
+          <h6 className="text-xs text-gray-500 mb-1">Peak-to-Peak Amplitude</h6>
+          <div className="w-full h-24">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={peakData}
+                margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+              >
+                <XAxis dataKey="time" tick={{ fontSize: 10 }} />
+                <YAxis
+                  dataKey="amplitude"
+                  domain={["auto", "auto"]}
+                  tick={{ fontSize: 9 }}
+                  width={30}
+                />
+                <Tooltip
+                  formatter={(value: any) => [`${value}`, "Amplitude"]}
+                  contentStyle={{ fontSize: "0.75rem" }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="amplitude"
+                  stroke="#f97316"
+                  strokeWidth={2}
+                  dot={false}
+                  isAnimationActive={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
-        )}
+        </div>
+      )}
     </div>
   );
 };

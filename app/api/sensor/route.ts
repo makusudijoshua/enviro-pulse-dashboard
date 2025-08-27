@@ -9,16 +9,14 @@ export async function GET(req: NextRequest) {
     const minutesParam = searchParams.get("minutes") || "live";
 
     const latestReading = await prisma.sensorReading.findFirst({
-      orderBy: {
-        timestamp: "desc",
-      },
+      orderBy: { timestamp: "desc" },
     });
 
     if (!latestReading) {
       return NextResponse.json({ live: null, readings: [] });
     }
 
-    // LIVE MODE: return the latest reading only
+    // LIVE MODE
     if (minutesParam === "live") {
       return NextResponse.json({
         live: latestReading,
@@ -26,7 +24,6 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // Convert string like "5", "15", "60", "1440" to number
     const minutes = Number(minutesParam);
     if (isNaN(minutes)) {
       return NextResponse.json(
@@ -35,30 +32,15 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Target time = live timestamp + X minutes
-    const targetTime = new Date(
-      new Date(latestReading.timestamp).getTime() + minutes * 60 * 1000,
+    const startTime = new Date(
+      new Date(latestReading.timestamp).getTime() - minutes * 60 * 1000,
     );
 
-    const now = new Date();
-
-    // Not enough time has passed → return empty readings
-    if (now < targetTime) {
-      return NextResponse.json({
-        live: latestReading,
-        readings: [],
-      });
-    }
-
-    // Search for the reading closest to the target time ± 30s window
-    const lowerBound = new Date(targetTime.getTime() - 30 * 1000);
-    const upperBound = new Date(targetTime.getTime() + 30 * 1000);
-
-    const closestReading = await prisma.sensorReading.findFirst({
+    const rawReadings = await prisma.sensorReading.findMany({
       where: {
         timestamp: {
-          gte: lowerBound,
-          lte: upperBound,
+          gte: startTime,
+          lte: latestReading.timestamp,
         },
       },
       orderBy: {
@@ -66,9 +48,50 @@ export async function GET(req: NextRequest) {
       },
     });
 
+    let spacedReadings = rawReadings;
+
+    // For 1h → return readings spaced by 1 minute
+    // For 1d → return readings spaced by 1 hour
+    if (minutes === 60 || minutes === 1440) {
+      const spacingMs = minutes === 60 ? 60 * 1000 : 60 * 60 * 1000;
+      let lastTimestamp = 0;
+
+      spacedReadings = rawReadings.filter((reading) => {
+        const current = new Date(reading.timestamp).getTime();
+        if (current - lastTimestamp >= spacingMs) {
+          lastTimestamp = current;
+          return true;
+        }
+        return false;
+      });
+    }
+
+    // For 5m and 15m → return closest reading to target time
+    if (minutes === 5 || minutes === 15) {
+      const targetTime = new Date(
+        new Date(latestReading.timestamp).getTime() - minutes * 60 * 1000,
+      );
+      const lowerBound = new Date(targetTime.getTime() - 30 * 1000);
+      const upperBound = new Date(targetTime.getTime() + 30 * 1000);
+
+      const closestReading = await prisma.sensorReading.findFirst({
+        where: {
+          timestamp: {
+            gte: lowerBound,
+            lte: upperBound,
+          },
+        },
+        orderBy: {
+          timestamp: "asc",
+        },
+      });
+
+      spacedReadings = closestReading ? [closestReading] : [];
+    }
+
     return NextResponse.json({
       live: latestReading,
-      readings: closestReading ? [closestReading] : [],
+      readings: spacedReadings,
     });
   } catch (err) {
     console.error("GET /api/sensor error:", err);

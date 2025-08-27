@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 
 const timeOptions = ["Live", "5m", "15m", "1h", "1d"] as const;
 const views = ["Grid", "Chart"] as const;
@@ -19,7 +19,6 @@ export type FilterState = {
 type FilterBarProps = {
   filters: FilterState;
   onChange: (updated: FilterState) => void;
-
   wifiConnected: boolean;
   ipAddress: string;
 };
@@ -30,18 +29,26 @@ export default function FilterBar({
   wifiConnected,
   ipAddress,
 }: FilterBarProps) {
+  // 🔁 Force Chart view for 1h and 1d
+  useEffect(() => {
+    if (filters.selectedTime === "1h" || filters.selectedTime === "1d") {
+      if (filters.selectedView !== "Chart") {
+        onChange({ ...filters, selectedView: "Chart" });
+      }
+    }
+  }, [filters.selectedTime]);
+
   const handleTimeChange = (time: TimeOption) => {
-    onChange({ ...filters, selectedTime: time });
+    const forcedChart = ["1h", "1d"].includes(time);
+    const newView: ViewOption = forcedChart ? "Chart" : filters.selectedView;
+
+    onChange({ ...filters, selectedTime: time, selectedView: newView });
   };
 
   const handleViewChange = (view: ViewOption) => {
-    const chartRestrictedTimes = ["Live", "5m", "15m"];
-    if (
-      chartRestrictedTimes.includes(filters.selectedTime) &&
-      view === "Chart"
-    ) {
-      return;
-    }
+    const isLockedToChart = ["1h", "1d"].includes(filters.selectedTime);
+    if (isLockedToChart && view !== "Chart") return;
+
     onChange({ ...filters, selectedView: view });
   };
 
@@ -53,6 +60,7 @@ export default function FilterBar({
     onChange({ ...filters, selectedSensors: updatedSensors });
   };
 
+  const isChartForced = ["1h", "1d"].includes(filters.selectedTime);
   const isChartDisabled = ["Live", "5m", "15m"].includes(filters.selectedTime);
 
   return (
@@ -75,14 +83,15 @@ export default function FilterBar({
           ))}
 
           {views.map((view) => {
-            const disabled = isChartDisabled && view === "Chart";
+            const disabled =
+              (isChartDisabled && view === "Chart") ||
+              (isChartForced && view !== "Chart");
 
             return (
               <button
                 key={view}
                 onClick={() => handleViewChange(view)}
                 disabled={disabled}
-                aria-disabled={disabled}
                 className={`px-3 py-1 rounded-md text-sm transition-colors ${
                   filters.selectedView === view
                     ? "bg-green-600 text-white"
